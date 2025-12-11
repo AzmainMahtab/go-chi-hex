@@ -1,6 +1,6 @@
 # Build stage
 FROM golang:1.25.5-alpine AS builder
-WORKDIR /app
+WORKDIR /docpad
 
 # Install air for hot-reloading
 RUN go install github.com/air-verse/air@latest

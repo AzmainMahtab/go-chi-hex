@@ -1,46 +1,61 @@
+version: '3.8'
 
 services:
   app:
     build:
       context: .
       target: dev
+    
     volumes:
       - .:/app
       - go-mod:/go/pkg/mod
+    
     ports:
       - "${APP_PORT}:${APP_PORT}"
+    
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+        
     environment:
+      - APP_PORT=${APP_PORT}
       - DB_HOST=${DB_HOST}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_PORT=${DB_PORT}
+      
     networks:
-      - my-net
+      - docpad-network
 
   postgres:
     image: postgres:17-alpine
+    restart: always
+    
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
+      
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      
     ports:
       - "${DB_PORT}:${DB_PORT}"
+      
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
+      
     networks:
-      - my-net
+      - docpad-network
 
 networks:
-  my-net:
-    driver: bridge
+  docpad-network:
+    driver: bridge 
 
 volumes:
   go-mod:
