@@ -1,3 +1,15 @@
+// @title DocPad Hospital Management API
+// @version 1.0
+// @description The core API for DocPad, managing patient records, scheduling, and prescriptions for the Bangladeshi demographic.
+// @contact.name DocPad Support
+// @contact.email support@docpad.bd
+// @host localhost:8080
+// @BasePath /api/v1
+// @schemes http
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 package main
 
 import (

@@ -15,7 +15,14 @@ func NewHealthHandleer() *HealthHandler {
 	return &HealthHandler{}
 }
 
-// Health check handler func
+// HealthCheck handles the GET /api/v1/health request.
+// @Summary Check the status and uptime of the API server.
+// @Description Provides a simple UP/DOWN status and service identification.
+// @Tags System
+// @Accept json
+// @Produce json
+// @Success 200 {object} object{status=string,service=string,environment=string} "Successful response indicating API status is UP."
+// @Router /health [get]
 func (h *HealthHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	// Data payload for the response
 	response := map[string]string{

@@ -1,0 +1,61 @@
+{
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "The core API for DocPad, managing patient records, scheduling, and prescriptions for the Bangladeshi demographic.",
+        "title": "DocPad Hospital Management API",
+        "contact": {
+            "name": "DocPad Support",
+            "email": "support@docpad.bd"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/health": {
+            "get": {
+                "description": "Provides a simple UP/DOWN status and service identification.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System"
+                ],
+                "summary": "Check the status and uptime of the API server.",
+                "responses": {
+                    "200": {
+                        "description": "Successful response indicating API status is UP.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "environment": {
+                                    "type": "string"
+                                },
+                                "service": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

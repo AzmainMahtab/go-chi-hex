@@ -1,0 +1,42 @@
+basePath: /api/v1
+host: localhost:8080
+info:
+  contact:
+    email: support@docpad.bd
+    name: DocPad Support
+  description: The core API for DocPad, managing patient records, scheduling, and
+    prescriptions for the Bangladeshi demographic.
+  title: DocPad Hospital Management API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Provides a simple UP/DOWN status and service identification.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response indicating API status is UP.
+          schema:
+            properties:
+              environment:
+                type: string
+              service:
+                type: string
+              status:
+                type: string
+            type: object
+      summary: Check the status and uptime of the API server.
+      tags:
+      - System
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

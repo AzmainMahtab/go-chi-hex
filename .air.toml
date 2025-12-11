@@ -7,7 +7,13 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   bin = "./tmp/main"
-  cmd = "go build -o ./tmp/main ./cmd/docpad"
+  cmd = "swag init -g cmd/docpad/main.go && go build -o ./tmp/main ./cmd/docpad"
+  # pre_cmd = [
+  #   # generate swagger before server starts.
+  #   "swag init -g cmd/docpad/main.go",
+  #
+  #   "clear", 
+  # ]
   delay = 1000
   entrypoint = ["./tmp/main"]
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
@@ -29,6 +35,7 @@ tmp_dir = "tmp"
   rerun_delay = 500
   send_interrupt = false
   stop_on_error = false
+
 
 [color]
   app = ""
