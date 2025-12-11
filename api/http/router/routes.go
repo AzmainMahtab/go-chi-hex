@@ -21,7 +21,7 @@ func NewRouter(deps RouterDependencies) http.Handler {
 	r.Use(middleware.Recoverer)
 
 	// Main router group
-	r.Route("api/v1", func(r chi.Router) {
+	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", deps.HealthH.HealthCheck)
 	})
 
