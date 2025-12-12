@@ -24,45 +24,59 @@ import (
 
 	"github.com/AzmainMahtab/docpad/api/http/handlers"
 	routes "github.com/AzmainMahtab/docpad/api/http/router"
+	"github.com/AzmainMahtab/docpad/internal/config"
+	"github.com/AzmainMahtab/docpad/internal/infrastructure/postgres"
 )
 
 func main() {
-	// ... Configuration (Port) setup ...
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-	addr := ":" + port
+	log.Println("Starting DocPad service assembly...")
 
-	// Handler initiations
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("FATAL: Failed to load configuration: %v", err)
+	}
+
+	dbConfig := postgres.Config{
+		Host:     cfg.DB.Host,
+		Port:     cfg.DB.Port,
+		User:     cfg.DB.User,
+		Password: cfg.DB.Password,
+		DBName:   cfg.DB.DBName,
+		PoolSize: cfg.DB.PoolSize,
+	}
+
+	db, err := postgres.ConnectDB(dbConfig)
+	if err != nil {
+		log.Fatalf("FATAL: Database connection failed: %v", err)
+	}
+	defer db.Close() // Ensure the connection is closed on exit
+
 	healthHandler := handlers.NewHealthHandleer()
 
-	// Router configuration
 	deps := routes.RouterDependencies{
 		HealthH: healthHandler,
 	}
-
 	router := routes.NewRouter(deps)
 
-	// ... Server configuration (timeouts, handler) ...
 	server := &http.Server{
-		Addr:         addr,
+		Addr:         ":" + cfg.Server.Port,
 		Handler:      router,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 
-	// ... Graceful shutdown logic ...
+	// Start the server in a non-blocking goroutine
 	go func() {
-		log.Printf("🚀 DocPad API Server starting on %s", addr)
+		log.Printf("🚀 DocPad API Server starting on http://localhost:%s", cfg.Server.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("FATAL: Could not listen on %s: %v", addr, err)
+			log.Fatalf("FATAL: Could not listen on %s: %v", cfg.Server.Port, err)
 		}
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
 	<-quit
 	log.Println("Shutting down server...")
 
