@@ -1,3 +1,5 @@
+// Package postgres
+// postgres package contains all the postgres related stuff
 package postgres
 
 import (

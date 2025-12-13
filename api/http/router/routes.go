@@ -1,3 +1,5 @@
+// Package routes
+// routes.go combinds all the other routs at one place
 package routes
 
 import (
@@ -31,6 +33,7 @@ func NewRouter(deps RouterDependencies) http.Handler {
 	fileServer := http.FileServer(http.Dir("./docs"))
 	r.Handle("/docs/*", http.StripPrefix("/docs", fileServer))
 
+	// Swagger here
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("/docs/swagger.json"),
 		httpSwagger.DeepLinking(true),

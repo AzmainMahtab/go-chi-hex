@@ -1,3 +1,5 @@
+// Package config
+// config package is used to manage and import all the configs
 package config
 
 import (

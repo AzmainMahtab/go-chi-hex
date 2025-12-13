@@ -1,3 +1,5 @@
+// Package jsonutil
+// jsonutil contains all the JSON marshaling and unmarshaling
 package jsonutil
 
 import (

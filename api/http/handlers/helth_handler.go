@@ -1,4 +1,6 @@
-package handlers // package handlers
+// Package handlers stores all the handler
+// handlers are HERE!
+package handlers
 
 import (
 	"log"
