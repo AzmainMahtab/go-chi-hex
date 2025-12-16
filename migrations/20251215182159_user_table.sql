@@ -1,5 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
+CREATE TYPE user_status_choise AS ENUM ('active', 'inactive', 'suspended');
 CREATE TABLE IF NOT EXISTS "user"(
   id SERIAL PRIMARY KEY,
   
@@ -7,7 +8,8 @@ CREATE TABLE IF NOT EXISTS "user"(
   email VARCHAR (128) UNIQUE NOT NULL,
   phone VARCHAR (20) UNIQUE NOT NULL,
   password TEXT NOT NULL,
-  
+  user_status user_status_choise NOT NULL DEFAULT 'active',
+
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
