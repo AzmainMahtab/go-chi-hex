@@ -1,4 +1,37 @@
 basePath: /api/v1
+definitions:
+  dto.RegisterUserRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      phone:
+        type: string
+      user_name:
+        type: string
+    required:
+    - email
+    - password
+    - phone
+    - user_name
+    type: object
+  dto.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      phone:
+        type: string
+      user_name:
+        type: string
+      user_status:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -31,6 +64,41 @@ paths:
       summary: Check the status and uptime of the API server.
       tags:
       - System
+  /user:
+    get:
+      description: Returns a test status message for the user service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all users (Test!)
+      tags:
+      - user
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+      summary: Register a new user !
+      tags:
+      - user
 schemes:
 - http
 securityDefinitions:

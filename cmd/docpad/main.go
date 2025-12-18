@@ -26,6 +26,7 @@ import (
 	routes "github.com/AzmainMahtab/docpad/api/http/router"
 	"github.com/AzmainMahtab/docpad/internal/config"
 	"github.com/AzmainMahtab/docpad/internal/infrastructure/postgres"
+	"github.com/AzmainMahtab/docpad/internal/services/users"
 )
 
 func main() {
@@ -45,19 +46,30 @@ func main() {
 		PoolSize: cfg.DB.PoolSize,
 	}
 
+	// connect to the Database
 	db, err := postgres.ConnectDB(dbConfig)
 	if err != nil {
 		log.Fatalf("FATAL: Database connection failed: %v", err)
 	}
 	defer db.Close() // Ensure the connection is closed on exit
 
+	// REPOSITORY SETUP
+	userRepo := postgres.NewUserRepo(db)
+
+	// SERVICE SETUP
+	userService := users.NewUserService(userRepo)
+
+	// HANDLER AND ROUTER SETUP
 	healthHandler := handlers.NewHealthHandleer()
+	userHandler := handlers.NewUSerHandler(userService)
 
 	deps := routes.RouterDependencies{
 		HealthH: healthHandler,
+		UserH:   userHandler,
 	}
 	router := routes.NewRouter(deps)
 
+	// SERVER SETUP
 	server := &http.Server{
 		Addr:         ":" + cfg.Server.Port,
 		Handler:      router,

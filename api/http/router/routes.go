@@ -14,6 +14,7 @@ import (
 
 type RouterDependencies struct {
 	HealthH *handlers.HealthHandler
+	UserH   *handlers.UserHandler
 }
 
 func NewRouter(deps RouterDependencies) http.Handler {
@@ -27,6 +28,7 @@ func NewRouter(deps RouterDependencies) http.Handler {
 	// Main router group
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", deps.HealthH.HealthCheck)
+		r.Mount("/user", userRouter(deps.UserH))
 	})
 
 	// --- Static Handler for /docs/* ---
@@ -40,5 +42,12 @@ func NewRouter(deps RouterDependencies) http.Handler {
 		httpSwagger.DocExpansion("none"),
 	))
 
+	return r
+}
+
+func userRouter(uh *handlers.UserHandler) http.Handler {
+	r := chi.NewRouter()
+	r.Post("/", uh.Register)
+	r.Get("/", uh.List)
 	return r
 }

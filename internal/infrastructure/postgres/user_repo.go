@@ -19,8 +19,9 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 
 func (r *UserRepo) Create(ctx context.Context, u *domain.User) error {
 	query := `
+		/* SQL */
 		INSERT INTO "user" (user_name, email, phone, password)
-		VALUSE ($1, $2, $3, $4)
+		VALUES ($1, $2, $3, $4)
 		RETURNING id, user_status, created_at, updated_at
 	`
 	return r.db.QueryRowContext(
