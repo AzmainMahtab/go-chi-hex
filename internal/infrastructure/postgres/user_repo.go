@@ -6,7 +6,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/AzmainMahtab/docpad/internal/domain"
 )
@@ -37,12 +39,49 @@ func (r *UserRepo) Create(ctx context.Context, u *domain.User) error {
 }
 
 func (r *UserRepo) Read(ctx context.Context, filter map[string]any, showDeleted bool) ([]*domain.User, error) {
-	return nil, nil
+	query := `
+		SELECT id, user_name, email, phone, user_status, created_at, updated_at, deleted_at
+		FROM "user"
+	`
+	// List of string that will become the WHERE clause
+	// Example : ["user_name = $1", "phone = $2"]
+	var conditions []string
+
+	// The arguments or values
+	// Example: ["azmain", "+8801700000000"]
+	var args []any
+
+	// The $1 , $2 the numbers are the placeholder index for postgresql
+	placeHolderIdx := 1
+
+	if !showDeleted {
+		conditions = append(conditions, "deleted_at IS NULL")
+	}
+
+	for key, val := range filter {
+		conditions = append(conditions, fmt.Sprintf("%s = $%d", key, placeHolderIdx))
+		args = append(args, val)
+		placeHolderIdx++
+	}
+
+	if len(conditions) > 0 {
+		query += "WHERE" + strings.Join(conditions, "AND")
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		log.Printf("Error fetching user list: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	return r.scanRows(rows)
 }
 
 func (r *UserRepo) ReadOne(ctx context.Context, id int) (*domain.User, error) {
 	u := &domain.User{}
 	query := `
+		/* SQL */
 		SELECT id, user_name, email, phone, user_status, created_at, updated_at
 		FROM "user"
 		WHERE id = $1 AND deleted_at IS NULL
@@ -80,4 +119,36 @@ func (r *UserRepo) Trash(ctx context.Context, filter map[string]any) ([]*domain.
 
 func (r *UserRepo) Prune(ctx context.Context, id int) error {
 	return nil
+}
+
+func (r *UserRepo) scanRows(rows *sql.Rows) ([]*domain.User, error) {
+	var users []*domain.User
+
+	for rows.Next() {
+		var user domain.User
+
+		// must list these in the EXACT order they appear in SELECT statement
+		err := rows.Scan(
+			&user.ID,
+			&user.UserName,
+			&user.Email,
+			&user.Phone,
+			&user.UserStatus,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&user.DeletedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning user row: %w", err)
+		}
+
+		users = append(users, &user)
+	}
+
+	// check for errors after the loop finishes
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during row iteration: %w", err)
+	}
+
+	return users, nil
 }
