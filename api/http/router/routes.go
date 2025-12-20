@@ -49,5 +49,6 @@ func userRouter(uh *handlers.UserHandler) http.Handler {
 	r := chi.NewRouter()
 	r.Post("/", uh.Register)
 	r.Get("/", uh.List)
+	r.Get("/{id}", uh.GetByID)
 	return r
 }

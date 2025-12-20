@@ -40,7 +40,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := jsonutil.WriteJSON(w, http.StatusCreated, res); err != nil {
+	if err := jsonutil.WriteJSON(w, http.StatusCreated, res, nil); err != nil {
 		return
 	}
 }
@@ -58,7 +58,23 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 		"service": "user",
 		"msg":     "Test List",
 	}
-	if err := jsonutil.WriteJSON(w, http.StatusOK, response); err != nil {
+	if err := jsonutil.WriteJSON(w, http.StatusOK, response, nil); err != nil {
+		return
+	}
+}
+
+func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	id, err := ReadIDPeram(r)
+	if err != nil {
+		return
+	}
+
+	res, err := h.svc.GetUser(r.Context(), id)
+	if err != nil {
+		return
+	}
+
+	if err := jsonutil.WriteJSON(w, http.StatusOK, res, nil); err != nil {
 		return
 	}
 }

@@ -5,6 +5,8 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"log"
 
 	"github.com/AzmainMahtab/docpad/internal/domain"
 )
@@ -39,7 +41,29 @@ func (r *UserRepo) Read(ctx context.Context, filter map[string]any, showDeleted 
 }
 
 func (r *UserRepo) ReadOne(ctx context.Context, id int) (*domain.User, error) {
-	return nil, nil
+	u := &domain.User{}
+	query := `
+		SELECT id, user_name, email, phone, user_status, created_at, updated_at
+		FROM "user"
+		WHERE id = $1 AND deleted_at IS NULL
+	`
+
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&u.ID,
+		&u.UserName,
+		&u.Email,
+		&u.Phone,
+		&u.UserStatus,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+	)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		log.Printf("Record not found %v", err)
+		return nil, err
+	}
+
+	return u, err
 }
 
 func (r *UserRepo) Update(ctx context.Context, id int, updates map[string]any) error {

@@ -4,6 +4,7 @@ package users
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	"github.com/AzmainMahtab/docpad/api/http/dto"
@@ -47,7 +48,16 @@ func (s *service) ListUsers(ctx context.Context, filters map[string]any) ([]*dto
 }
 
 func (s *service) GetUser(ctx context.Context, id int) (*dto.UserResponse, error) {
-	return nil, nil
+	u, err := s.repo.ReadOne(ctx, id)
+	if err != nil {
+		log.Printf("Readone repo error: %v", err)
+		return nil, err
+	}
+	if u == nil {
+		return nil, errors.New("user not found")
+	}
+
+	return s.mapToResponse(u), nil
 }
 
 func (s *service) UpdateUser(ctx context.Context, id int, req dto.UpdateUserRequest) (*dto.UserResponse, error) {

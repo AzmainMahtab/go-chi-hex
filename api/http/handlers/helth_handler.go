@@ -33,7 +33,7 @@ func (h *HealthHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		"environment": "development",
 	}
 
-	if err := jsonutil.WriteJSON(w, http.StatusOK, response); err != nil {
+	if err := jsonutil.WriteJSON(w, http.StatusOK, response, nil); err != nil {
 		log.Printf("ERROR in helth check %v", err)
 	}
 }
