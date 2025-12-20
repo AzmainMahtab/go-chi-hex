@@ -4,10 +4,12 @@ package users
 
 import (
 	"context"
+	"log"
 
 	"github.com/AzmainMahtab/docpad/api/http/dto"
 	"github.com/AzmainMahtab/docpad/internal/domain"
 	"github.com/AzmainMahtab/docpad/internal/ports"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type service struct {
@@ -19,14 +21,21 @@ func NewUserService(repo ports.UserRepository) ports.UserService {
 }
 
 func (s *service) RegisterUser(ctx context.Context, req dto.RegisterUserRequest) (*dto.UserResponse, error) {
+	pass, err := s.hashPassword(req.Password)
+	if err != nil {
+		log.Printf("hashing problem: %v", err)
+		return nil, err
+	}
+
 	userDomain := &domain.User{
 		UserName: req.UserName,
 		Email:    req.Email,
 		Phone:    req.Phone,
-		Password: req.Password,
+		Password: pass,
 	}
 
 	if err := s.repo.Create(ctx, userDomain); err != nil {
+		log.Printf("Can not create user: %v", err)
 		return nil, err
 	}
 
@@ -77,3 +86,10 @@ func (s *service) mapToResponse(u *domain.User) *dto.UserResponse {
 // 	}
 // 	return res
 // }
+
+//  --- PASSWORD HASHING HELPER ---//
+
+func (s *service) hashPassword(pass string) (string, error) {
+	byte, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	return string(byte), err
+}

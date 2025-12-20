@@ -33,3 +33,27 @@ func (r *UserRepo) Create(ctx context.Context, u *domain.User) error {
 		u.Password,
 	).Scan(&u.ID, &u.UserStatus, &u.CreatedAt, &u.UpdatedAt)
 }
+
+func (r *UserRepo) Read(ctx context.Context, filter map[string]any, showDeleted bool) ([]*domain.User, error) {
+	return nil, nil
+}
+
+func (r *UserRepo) ReadOne(ctx context.Context, id int) (*domain.User, error) {
+	return nil, nil
+}
+
+func (r *UserRepo) Update(ctx context.Context, id int, updates map[string]any) error {
+	return nil
+}
+
+func (r *UserRepo) SoftDelete(ctx context.Context, id int) error {
+	return nil
+}
+
+func (r *UserRepo) Trash(ctx context.Context, filter map[string]any) ([]*domain.User, error) {
+	return nil, nil
+}
+
+func (r *UserRepo) Prune(ctx context.Context, id int) error {
+	return nil
+}
