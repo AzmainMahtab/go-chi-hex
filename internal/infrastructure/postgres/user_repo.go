@@ -121,6 +121,7 @@ func (r *UserRepo) Prune(ctx context.Context, id int) error {
 	return nil
 }
 
+// Itterates over the rows to send domain object
 func (r *UserRepo) scanRows(rows *sql.Rows) ([]*domain.User, error) {
 	var users []*domain.User
 
