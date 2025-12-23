@@ -58,12 +58,14 @@ func (r *UserRepo) Read(ctx context.Context, filter map[string]any, showDeleted 
 		conditions = append(conditions, "deleted_at IS NULL")
 	}
 
+	// Filter mapping here
 	for key, val := range filter {
 		conditions = append(conditions, fmt.Sprintf("%s = $%d", key, placeHolderIdx))
 		args = append(args, val)
 		placeHolderIdx++
 	}
 
+	// Extending the query if conditions/filters exist
 	if len(conditions) > 0 {
 		query += "WHERE" + strings.Join(conditions, "AND")
 	}

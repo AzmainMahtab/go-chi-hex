@@ -22,6 +22,7 @@ func NewUserService(repo ports.UserRepository) ports.UserService {
 }
 
 func (s *service) RegisterUser(ctx context.Context, req dto.RegisterUserRequest) (*dto.UserResponse, error) {
+	// HASHING PASSWORD HERE
 	pass, err := s.hashPassword(req.Password)
 	if err != nil {
 		log.Printf("hashing problem: %v", err)
