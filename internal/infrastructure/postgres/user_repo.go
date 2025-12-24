@@ -38,7 +38,7 @@ func (r *UserRepo) Create(ctx context.Context, u *domain.User) error {
 	).Scan(&u.ID, &u.UserStatus, &u.CreatedAt, &u.UpdatedAt)
 }
 
-func (r *UserRepo) Read(ctx context.Context, filter map[string]any, showDeleted bool) ([]*domain.User, error) {
+func (r *UserRepo) ReadAll(ctx context.Context, filter map[string]any, showDeleted bool) ([]*domain.User, error) {
 	query := `
 		SELECT id, user_name, email, phone, user_status, created_at, updated_at, deleted_at
 		FROM "user"

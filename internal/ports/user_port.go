@@ -14,7 +14,7 @@ type UserRepository interface {
 	Create(ctx context.Context, user *domain.User) error
 
 	// Read active users take optional filtering return: list of users and error if any
-	Read(ctx context.Context, filter map[string]any, showDeleted bool) ([]*domain.User, error)
+	ReadAll(ctx context.Context, filter map[string]any, showDeleted bool) ([]*domain.User, error)
 
 	// ReadOne reads a single active user
 	ReadOne(ctx context.Context, id int) (*domain.User, error)

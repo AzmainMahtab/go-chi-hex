@@ -50,17 +50,9 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Description  Returns a test status message for the user service
 // @Tags         user
 // @Produce      json
-// @Success      200  {object}  map[string]string  "Success response"
+// @Success      200  {object} dto.UserResponse
 // @Router       /user [get]
 func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
-	response := map[string]string{
-		"status":  "UP",
-		"service": "user",
-		"msg":     "Test List",
-	}
-	if err := jsonutil.WriteJSON(w, http.StatusOK, response, nil); err != nil {
-		return
-	}
 }
 
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {

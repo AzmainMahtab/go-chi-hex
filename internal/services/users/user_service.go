@@ -45,7 +45,15 @@ func (s *service) RegisterUser(ctx context.Context, req dto.RegisterUserRequest)
 }
 
 func (s *service) ListUsers(ctx context.Context, filters map[string]any) ([]*dto.UserResponse, error) {
-	return nil, nil
+	var users []*domain.User
+
+	users, err := s.repo.ReadAll(ctx, filters, true)
+	if err != nil {
+		log.Printf("User list fect error: %v", err)
+		return nil, err
+	}
+
+	return s.mapSliceToResponse(users), nil
 }
 
 func (s *service) GetUser(ctx context.Context, id int) (*dto.UserResponse, error) {
@@ -78,7 +86,7 @@ func (s *service) PermanentlyDeleteUser(ctx context.Context, id int) error {
 }
 
 // --- PRIVATE HELPERS FOR MAPPING ---
-
+// A SINGLE DOMAIN USER TO DTO RESPONSE
 func (s *service) mapToResponse(u *domain.User) *dto.UserResponse {
 	return &dto.UserResponse{
 		ID:         u.ID,
@@ -90,13 +98,14 @@ func (s *service) mapToResponse(u *domain.User) *dto.UserResponse {
 	}
 }
 
-// func (s *service) mapSliceToResponse(users []*domain.User) []*dto.UserResponse {
-// 	res := make([]*dto.UserResponse, len(users))
-// 	for i, u := range users {
-// 		res[i] = s.mapToResponse(u)
-// 	}
-// 	return res
-// }
+// A SLICE OF DOMAIN USERS TO SLICE OF DTO RESPONSES
+func (s *service) mapSliceToResponse(users []*domain.User) []*dto.UserResponse {
+	res := make([]*dto.UserResponse, len(users))
+	for i, u := range users {
+		res[i] = s.mapToResponse(u)
+	}
+	return res
+}
 
 //  --- PASSWORD HASHING HELPER ---//
 
