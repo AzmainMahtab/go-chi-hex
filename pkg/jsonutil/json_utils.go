@@ -10,18 +10,22 @@ import (
 	"strings"
 )
 
-// APIResponse is the standard "Envelope" for all successful responses
-type APIResponse struct {
-	Status  string `json:"status"`            // "success" or "error"
-	Data    any    `json:"data,omitempty"`    // The actual payload
-	Message string `json:"message,omitempty"` // A human-readable message
+// Response is your standard API envelope
+type Response struct {
+	Success    bool        `json:"success"`
+	Status     string      `json:"status"`            // "success", "fail", or "error"
+	StatusCode int         `json:"statusCode"`        // HTTP status code
+	Message    string      `json:"message,omitempty"` // Human-readable message
+	Data       interface{} `json:"data,omitempty"`    // Primary response data
+	Meta       interface{} `json:"meta,omitempty"`    // Pagination, etc.
+	Errors     []ErrorItem `json:"errors,omitempty"`  // Error details
 }
 
-// APIError defines a structured error for the client
-type APIError struct {
-	Code    int    `json:"code"`             // Internal application code or HTTP status
-	Message string `json:"message"`          // User-friendly error message
-	Detail  any    `json:"detail,omitempty"` // Specifics (e.g., validation errors)
+// ErrorItem represents machine-readable error details
+type ErrorItem struct {
+	Code    string `json:"code,omitempty"`    // e.g., "INVALID_EMAIL"
+	Field   string `json:"field,omitempty"`   // e.g., "email"
+	Message string `json:"message,omitempty"` // User-friendly description
 }
 
 const MaxRequestBodySize = 1048576
@@ -104,56 +108,61 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, target any) error {
 	return nil
 }
 
-// WriteJSON handles the consistent response logic
-func WriteJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
-	// Standardize the output into our envelope
-	response := APIResponse{
-		Status: "success",
-		Data:   data,
-	}
-
-	js, err := json.Marshal(response)
-	if err != nil {
-		return err
-	}
-
-	for key, value := range headers {
-		w.Header()[key] = value
+// WriteJSON handles all successful responses
+func WriteJSON(w http.ResponseWriter, status int, data any, meta any, message string) error {
+	resp := Response{
+		Success:    true,
+		Status:     "success",
+		StatusCode: status,
+		Message:    message,
+		Data:       data,
+		Meta:       meta,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	w.Write(js)
-	return nil
+	return json.NewEncoder(w).Encode(resp)
 }
 
-// ---  ERROR HELPERS ---
-
-func ErrorResponse(w http.ResponseWriter, r *http.Request, status int, message string, details any) {
-	resp := APIResponse{
-		Status:  "error",
-		Message: message,
-		Data: APIError{
-			Code:    status,
-			Message: message,
-			Detail:  details,
-		},
+// ErrorResponse is the generic helper for sending errors
+func ErrorResponse(w http.ResponseWriter, status int, message string, errs []ErrorItem) {
+	// Map HTTP status to "fail" (4xx) or "error" (5xx)
+	statusText := "error"
+	if status >= 400 && status < 500 {
+		statusText = "fail"
 	}
 
-	js, err := json.Marshal(resp)
-	if err != nil {
-		return
+	resp := Response{
+		Success:    false,
+		Status:     statusText,
+		StatusCode: status,
+		Message:    message,
+		Errors:     errs,
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	w.Write(js)
+	json.NewEncoder(w).Encode(resp)
 }
 
-func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	// Log the actual error here for internal tracking
-	ErrorResponse(w, r, http.StatusInternalServerError, "An unexpected server error occurred", nil)
+// --- Specific Error Shortcuts ---
+
+// BadRequestResponse for validation or malformed JSON
+func BadRequestResponse(w http.ResponseWriter, message string, errs []ErrorItem) {
+	ErrorResponse(w, http.StatusBadRequest, message, errs)
 }
 
-func BadRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
-	ErrorResponse(w, r, http.StatusBadRequest, err.Error(), nil)
+// ServerErrorResponse shields internal details.
+// You pass the ACTUAL error for logging, but the user sees a generic message.
+func ServerErrorResponse(w http.ResponseWriter, loggerErr error) {
+	// In a real app, you'd log loggerErr here
+	// log.Printf("INTERNAL ERROR: %v", loggerErr)
+
+	message := "An unexpected server error occurred"
+	ErrorResponse(w, http.StatusInternalServerError, message, nil)
+}
+
+// NotFoundResponse for missing resources
+func NotFoundResponse(w http.ResponseWriter, message string) {
+	ErrorResponse(w, http.StatusNotFound, message, nil)
 }
