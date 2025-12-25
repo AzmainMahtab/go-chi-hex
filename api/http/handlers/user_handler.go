@@ -53,6 +53,13 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Success      200  {object} dto.UserResponse
 // @Router       /user [get]
 func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
+	res, err := h.svc.ListUsers(r.Context(), nil)
+	if err != nil {
+		return
+	}
+	if err := jsonutil.WriteJSON(w, http.StatusOK, res, nil); err != nil {
+		return
+	}
 }
 
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {

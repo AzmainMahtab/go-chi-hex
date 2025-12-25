@@ -64,12 +64,9 @@ const docTemplate = `{
                 "summary": "List all users (Test!)",
                 "responses": {
                     "200": {
-                        "description": "Success response",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.UserResponse"
                         }
                     }
                 }

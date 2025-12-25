@@ -71,11 +71,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: Success response
+          description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.UserResponse'
       summary: List all users (Test!)
       tags:
       - user
