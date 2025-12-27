@@ -5,10 +5,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
-	"log"
-	"strings"
 
 	"github.com/AzmainMahtab/docpad/internal/domain"
 )
@@ -39,72 +36,23 @@ func (r *UserRepo) Create(ctx context.Context, u *domain.User) error {
 }
 
 func (r *UserRepo) ReadAll(ctx context.Context, filter map[string]any, showDeleted bool) ([]*domain.User, error) {
-	query := `
-		SELECT id, user_name, email, phone, user_status, created_at, updated_at, deleted_at
-		FROM "user"
-	`
-	// List of string that will become the WHERE clause
-	// Example : ["user_name = $1", "phone = $2"]
-	var conditions []string
+	query := `SELECT id, user_name, email, phone, user_status, created_at FROM "user" WHERE 1=1`
 
-	// The arguments or values
-	// Example: ["azmain", "+8801700000000"]
-	var args []any
-
-	// The $1 , $2 the numbers are the placeholder index for postgresql
-	placeHolderIdx := 1
-
+	// Add Soft-Delete filter
 	if !showDeleted {
-		conditions = append(conditions, "deleted_at IS NULL")
+		query += " AND deleted_at IS NULL"
 	}
 
-	// Filter mapping here
-	for key, val := range filter {
-		conditions = append(conditions, fmt.Sprintf("%s = $%d", key, placeHolderIdx))
-		args = append(args, val)
-		placeHolderIdx++
-	}
-
-	// Extending the query if conditions/filters exist
-	if len(conditions) > 0 {
-		query += "WHERE" + strings.Join(conditions, "AND")
-	}
+	// Dynamically build the WHERE clause from the map
+	query, args := r.appendFilters(query, filter)
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		log.Printf("Error fetching user list: %v", err)
 		return nil, err
 	}
-	defer rows.Close()
+	defer rows.Close() // ALWAYS close rows to prevent memory leaks
 
 	return r.scanRows(rows)
-}
-
-func (r *UserRepo) ReadOne(ctx context.Context, id int) (*domain.User, error) {
-	u := &domain.User{}
-	query := `
-		/* SQL */
-		SELECT id, user_name, email, phone, user_status, created_at, updated_at
-		FROM "user"
-		WHERE id = $1 AND deleted_at IS NULL
-	`
-
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&u.ID,
-		&u.UserName,
-		&u.Email,
-		&u.Phone,
-		&u.UserStatus,
-		&u.CreatedAt,
-		&u.UpdatedAt,
-	)
-
-	if errors.Is(err, sql.ErrNoRows) {
-		log.Printf("Record not found %v", err)
-		return nil, err
-	}
-
-	return u, err
 }
 
 func (r *UserRepo) Update(ctx context.Context, id int, updates map[string]any) error {
@@ -154,4 +102,28 @@ func (r *UserRepo) scanRows(rows *sql.Rows) ([]*domain.User, error) {
 	}
 
 	return users, nil
+}
+
+// appendFilters helps to build dynamic WHERE clauses
+func (r *UserRepo) appendFilters(baseQuery string, filter map[string]any) (string, []any) {
+	// 1. Prepare an empty list to hold our values
+	var args []any
+
+	// 2. Start counting at 1 (Postgres uses $1, $2, etc.)
+	counter := 1
+
+	// 3. Loop through every item in your filter map
+	for column, value := range filter {
+		// Build the string: " AND username = $1"
+		// Then " AND email = $2", etc.
+		baseQuery = baseQuery + fmt.Sprintf(" AND %s = $%d", column, counter)
+
+		// Add the actual value (e.g., "John") to our list
+		args = append(args, value)
+
+		// Increment the number for the next loop
+		counter++
+	}
+
+	return baseQuery, args
 }
