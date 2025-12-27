@@ -5,7 +5,9 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 
 	"github.com/AzmainMahtab/docpad/internal/domain"
 )
@@ -36,7 +38,11 @@ func (r *UserRepo) Create(ctx context.Context, u *domain.User) error {
 }
 
 func (r *UserRepo) ReadAll(ctx context.Context, filter map[string]any, showDeleted bool) ([]*domain.User, error) {
-	query := `SELECT id, user_name, email, phone, user_status, created_at FROM "user" WHERE 1=1`
+	query := `
+		SELECT id, user_name, email, phone, user_status, created_at, updated_at, deleted_at 
+		FROM "user" 
+		WHERE 1=1
+	`
 
 	// Add Soft-Delete filter
 	if !showDeleted {
@@ -55,6 +61,33 @@ func (r *UserRepo) ReadAll(ctx context.Context, filter map[string]any, showDelet
 	return r.scanRows(rows)
 }
 
+func (r *UserRepo) ReadOne(ctx context.Context, id int) (*domain.User, error) {
+	u := &domain.User{}
+	query := `
+		/* SQL */
+		SELECT id, user_name, email, phone, user_status, created_at, updated_at
+		FROM "user"
+		WHERE id = $1 AND deleted_at IS NULL
+	`
+
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&u.ID,
+		&u.UserName,
+		&u.Email,
+		&u.Phone,
+		&u.UserStatus,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+	)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		log.Printf("Record not found %v", err)
+		return nil, err
+	}
+
+	return u, err
+}
+
 func (r *UserRepo) Update(ctx context.Context, id int, updates map[string]any) error {
 	return nil
 }
@@ -64,7 +97,20 @@ func (r *UserRepo) SoftDelete(ctx context.Context, id int) error {
 }
 
 func (r *UserRepo) Trash(ctx context.Context, filter map[string]any) ([]*domain.User, error) {
-	return nil, nil
+	query := `
+		SELECT id, user_name, email, phone, user_status, created_at, updated_at, deleted_at
+		FROM "user"
+		WHERE deleted_at IS NOT NULL
+	`
+	query, args := r.appendFilters(query, filter)
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return r.scanRows(rows)
 }
 
 func (r *UserRepo) Prune(ctx context.Context, id int) error {
@@ -106,13 +152,12 @@ func (r *UserRepo) scanRows(rows *sql.Rows) ([]*domain.User, error) {
 
 // appendFilters helps to build dynamic WHERE clauses
 func (r *UserRepo) appendFilters(baseQuery string, filter map[string]any) (string, []any) {
-	// 1. Prepare an empty list to hold our values
 	var args []any
 
-	// 2. Start counting at 1 (Postgres uses $1, $2, etc.)
+	//  Start counting at 1 (Postgres uses $1, $2, etc.)
 	counter := 1
 
-	// 3. Loop through every item in your filter map
+	//  Loop through every item in your filter map
 	for column, value := range filter {
 		// Build the string: " AND username = $1"
 		// Then " AND email = $2", etc.
