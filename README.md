@@ -7,5 +7,5 @@ This has strong encription for sensetive paitent data and a user friendly interf
 
 ✅ Implemented | 🔄 In Progress/Planned
 
-|Aread        |Features and Best Practices         |:---Status        |
+|Aread        |Features and Best Practices         |Status        |
 |API Design & Architecture | RESTful API design<br> Domain Driven Design, Hexagonal architecture <br> Open API 2.0 specifications   |✅<br> ✅<br> ✅ <br> |
