@@ -10,3 +10,4 @@ This has strong encription for sensetive paitent data and a user friendly interf
 |Aread        |Features and Best Practices         |Status        |
 |---------------|-----------------------------------|--------------|
 |API Design & Architecture | RESTful API design<br> Domain Driven Design, Hexagonal architecture <br> Open API 2.0 specifications<br> Task Queue (Asynq)   |✅<br> ✅<br> ✅ <br> 🔄 |
+|Database       | PostgreSQL <br> Raw SQL quries for performance | pending |
