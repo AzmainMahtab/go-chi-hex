@@ -5,13 +5,13 @@ package domain
 import "time"
 
 type User struct {
-	ID         int
-	UserName   string
-	Email      string
-	Phone      string
-	Password   string
-	UserStatus string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	DeletedAt  *time.Time
+	ID         int        `db:"id"`
+	UserName   string     `db:"user_name"`
+	Email      string     `db:"email"`
+	Phone      string     `db:"phone"`
+	Password   string     `db:"password"`
+	UserStatus string     `db:"user_status"`
+	CreatedAt  time.Time  `db:"created_at"`
+	UpdatedAt  time.Time  `db:"updated_at"`
+	DeletedAt  *time.Time `db:"deleted_at"`
 }
