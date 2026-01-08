@@ -7,7 +7,6 @@ import (
 	"errors"
 	"log"
 
-	"github.com/AzmainMahtab/docpad/api/http/dto"
 	"github.com/AzmainMahtab/docpad/internal/domain"
 	"github.com/AzmainMahtab/docpad/internal/ports"
 	"golang.org/x/crypto/bcrypt"
@@ -21,95 +20,77 @@ func NewUserService(repo ports.UserRepository) ports.UserService {
 	return &service{repo: repo}
 }
 
-func (s *service) RegisterUser(ctx context.Context, req dto.RegisterUserRequest) (*dto.UserResponse, error) {
-	// HASHING PASSWORD HERE
-	pass, err := s.hashPassword(req.Password)
+// RegisterUser takes a domain.User (filled with data from the handler)
+func (s *service) RegisterUser(ctx context.Context, req domain.User) (*domain.User, error) {
+	// 1. Hash the password before saving
+	hashedPass, err := s.hashPassword(req.Password)
 	if err != nil {
-		log.Printf("hashing problem: %v", err)
+		return nil, err
+	}
+	req.Password = hashedPass
+
+	// 2. Call Repo to save. The Repo will update req with ID/Timestamps via Scan
+	if err := s.repo.Create(ctx, &req); err != nil {
+		log.Printf("Service: Create user error: %v", err)
 		return nil, err
 	}
 
-	userDomain := &domain.User{
-		UserName: req.UserName,
-		Email:    req.Email,
-		Phone:    req.Phone,
-		Password: pass,
-	}
-
-	if err := s.repo.Create(ctx, userDomain); err != nil {
-		log.Printf("Can not create user: %v", err)
-		return nil, err
-	}
-
-	return s.mapToResponse(userDomain), nil
+	return &req, nil
 }
 
-func (s *service) ListUsers(ctx context.Context, filters map[string]any) ([]*dto.UserResponse, error) {
-	var users []*domain.User
-
-	users, err := s.repo.ReadAll(ctx, filters, true)
+func (s *service) ListUsers(ctx context.Context, filters map[string]any) ([]*domain.User, error) {
+	// showDeleted is false here because this is for "active" users
+	users, err := s.repo.ReadAll(ctx, filters, false)
 	if err != nil {
-		log.Printf("User list fect error: %v", err)
+		log.Printf("Service: ReadAll error: %v", err)
 		return nil, err
 	}
-
-	return s.mapSliceToResponse(users), nil
+	return users, nil
 }
 
-func (s *service) GetUser(ctx context.Context, id int) (*dto.UserResponse, error) {
+func (s *service) GetUser(ctx context.Context, id int) (*domain.User, error) {
 	u, err := s.repo.ReadOne(ctx, id)
 	if err != nil {
-		log.Printf("Readone repo error: %v", err)
 		return nil, err
 	}
 	if u == nil {
 		return nil, errors.New("user not found")
 	}
-
-	return s.mapToResponse(u), nil
+	return u, nil
 }
 
-func (s *service) UpdateUser(ctx context.Context, id int, req dto.UpdateUserRequest) (*dto.UserResponse, error) {
-	return nil, nil
+func (s *service) UpdateUser(ctx context.Context, id int, updates map[string]any) (*domain.User, error) {
+	// 1. Check if user exists first (Optional, but good for business logic)
+	_, err := s.repo.ReadOne(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Perform the partial update
+	if err := s.repo.Update(ctx, id, updates); err != nil {
+		return nil, err
+	}
+
+	// 3. Return the fresh user data
+	return s.repo.ReadOne(ctx, id)
 }
 
 func (s *service) RemoveUser(ctx context.Context, id int) error {
-	return nil
+	return s.repo.SoftDelete(ctx, id)
 }
 
-func (s *service) GetTrashedUsers(ctx context.Context) ([]*dto.UserResponse, error) {
-	return nil, nil
+func (s *service) GetTrashedUsers(ctx context.Context) ([]*domain.User, error) {
+	// We pass an empty filter map to get all trashed users
+	return s.repo.Trash(ctx, make(map[string]any))
 }
 
 func (s *service) PermanentlyDeleteUser(ctx context.Context, id int) error {
-	return nil
+	return s.repo.Prune(ctx, id)
 }
 
-// --- PRIVATE HELPERS FOR MAPPING ---
-// A SINGLE DOMAIN USER TO DTO RESPONSE
-func (s *service) mapToResponse(u *domain.User) *dto.UserResponse {
-	return &dto.UserResponse{
-		ID:         u.ID,
-		UserName:   u.UserName,
-		Email:      u.Email,
-		Phone:      u.Phone,
-		UserStatus: u.UserStatus,
-		CreatedAt:  u.CreatedAt,
-	}
-}
-
-// A SLICE OF DOMAIN USERS TO SLICE OF DTO RESPONSES
-func (s *service) mapSliceToResponse(users []*domain.User) []*dto.UserResponse {
-	res := make([]*dto.UserResponse, len(users))
-	for i, u := range users {
-		res[i] = s.mapToResponse(u)
-	}
-	return res
-}
-
-//  --- PASSWORD HASHING HELPER ---//
+// --- PRIVATE HELPERS ---
 
 func (s *service) hashPassword(pass string) (string, error) {
-	byte, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
-	return string(byte), err
+	bytes, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	return string(bytes), err
 }

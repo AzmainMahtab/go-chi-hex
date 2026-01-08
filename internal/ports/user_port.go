@@ -6,7 +6,6 @@ package ports
 import (
 	"context"
 
-	"github.com/AzmainMahtab/docpad/api/http/dto"
 	"github.com/AzmainMahtab/docpad/internal/domain"
 )
 
@@ -42,7 +41,7 @@ type UserService interface {
 	GetUser(ctx context.Context, id int) (*domain.User, error)
 
 	// UpdateUser performs a partial update on a user's information.
-	UpdateUser(ctx context.Context, id int, req dto.UpdateUserRequest) (*domain.User, error)
+	UpdateUser(ctx context.Context, id int, req map[string]any) (*domain.User, error)
 
 	// RemoveUser soft-deletes a user from the active system.
 	RemoveUser(ctx context.Context, id int) error
