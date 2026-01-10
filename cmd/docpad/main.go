@@ -61,7 +61,7 @@ func main() {
 
 	// HANDLER AND ROUTER SETUP
 	healthHandler := handlers.NewHealthHandleer()
-	userHandler := handlers.NewUSerHandler(userService)
+	userHandler := handlers.NewUserHandler(userService)
 
 	deps := routes.RouterDependencies{
 		HealthH: healthHandler,

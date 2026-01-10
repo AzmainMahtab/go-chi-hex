@@ -17,6 +17,15 @@ definitions:
     - phone
     - user_name
     type: object
+  dto.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      phone:
+        type: string
+      user_name:
+        type: string
+    type: object
   dto.UserResponse:
     properties:
       created_at:
@@ -66,15 +75,16 @@ paths:
       - System
   /user:
     get:
-      description: Returns a test status message for the user service
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.UserResponse'
-      summary: List all users (Test!)
+            items:
+              $ref: '#/definitions/dto.UserResponse'
+            type: array
+      summary: List active users
       tags:
       - user
     post:
@@ -94,7 +104,131 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/dto.UserResponse'
-      summary: Register a new user !
+      summary: Register a new user
+      tags:
+      - user
+  /user/{id}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+      summary: Soft delete user
+      tags:
+      - user
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+      summary: Get user by ID
+      tags:
+      - user
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Fields to update
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+      summary: Update user partially
+      tags:
+      - user
+  /user/{id}/prune:
+    delete:
+      description: Hard deletes a user record from the database. This action cannot
+        be undone.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: User permanently deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid ID
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Permanently delete a user
+      tags:
+      - user
+  /user/{id}/restore:
+    patch:
+      description: Restore a user that has been soft deleted
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Restore a delete user
+      tags:
+      - user
+  /user/trash:
+    get:
+      description: Retrieves all users where deleted_at is not null
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.UserResponse'
+            type: array
+      summary: List soft-deleted users
       tags:
       - user
 schemes:

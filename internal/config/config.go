@@ -46,7 +46,7 @@ func LoadConfig() (*Config, error) {
 		},
 
 		DB: DatabaseConfig{
-			Host:     getEnv("_DB_HOST", "localhost"),
+			Host:     getEnv("_DB_HOST", "localhost"), //RUNNING LOCAL DEV REMOVE _DB BEFORE DOCKER BUILD
 			Port:     getEnv("DB_PORT", "5432"),
 			User:     getEnv("DB_USER", "postgres"),
 			DBName:   getEnv("DB_NAME", "docpad_db"),
