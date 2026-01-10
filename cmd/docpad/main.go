@@ -22,11 +22,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/AzmainMahtab/docpad/api/http/handlers"
-	routes "github.com/AzmainMahtab/docpad/api/http/router"
-	"github.com/AzmainMahtab/docpad/internal/config"
-	"github.com/AzmainMahtab/docpad/internal/infrastructure/postgres"
-	"github.com/AzmainMahtab/docpad/internal/services/users"
+	"github.com/AzmainMahtab/go-chi-hex/api/http/handlers"
+	routes "github.com/AzmainMahtab/go-chi-hex/api/http/router"
+	"github.com/AzmainMahtab/go-chi-hex/internal/config"
+	"github.com/AzmainMahtab/go-chi-hex/internal/infrastructure/postgres"
+	"github.com/AzmainMahtab/go-chi-hex/internal/services/users"
 )
 
 func main() {

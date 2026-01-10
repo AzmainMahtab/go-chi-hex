@@ -7,8 +7,8 @@ import (
 	"errors"
 	"log"
 
-	"github.com/AzmainMahtab/docpad/internal/domain"
-	"github.com/AzmainMahtab/docpad/internal/ports"
+	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
+	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
 	"golang.org/x/crypto/bcrypt"
 )
 

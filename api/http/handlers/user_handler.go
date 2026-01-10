@@ -6,10 +6,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/AzmainMahtab/docpad/api/http/dto"
-	"github.com/AzmainMahtab/docpad/internal/domain"
-	"github.com/AzmainMahtab/docpad/internal/ports"
-	"github.com/AzmainMahtab/docpad/pkg/jsonutil"
+	"github.com/AzmainMahtab/go-chi-hex/api/http/dto"
+	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
+	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
+	"github.com/AzmainMahtab/go-chi-hex/pkg/jsonutil"
 )
 
 type UserHandler struct {
