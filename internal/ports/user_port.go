@@ -6,7 +6,7 @@ package ports
 import (
 	"context"
 
-	"github.com/AzmainMahtab/docpad/internal/domain"
+	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 )
 
 type UserRepository interface {

@@ -6,7 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/AzmainMahtab/docpad/internal/domain"
+	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/jmoiron/sqlx"
 	"strings"
 )

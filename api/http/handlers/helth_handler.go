@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/AzmainMahtab/docpad/pkg/jsonutil"
+	"github.com/AzmainMahtab/go-chi-hex/pkg/jsonutil"
 )
 
 type HealthHandler struct {
