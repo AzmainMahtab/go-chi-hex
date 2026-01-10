@@ -20,16 +20,14 @@ func NewUserService(repo ports.UserRepository) ports.UserService {
 	return &service{repo: repo}
 }
 
-// RegisterUser takes a domain.User (filled with data from the handler)
+// RegisterUser takes a domain.User and registers a user
 func (s *service) RegisterUser(ctx context.Context, req domain.User) (*domain.User, error) {
-	// 1. Hash the password before saving
 	hashedPass, err := s.hashPassword(req.Password)
 	if err != nil {
 		return nil, err
 	}
 	req.Password = hashedPass
 
-	// 2. Call Repo to save. The Repo will update req with ID/Timestamps via Scan
 	if err := s.repo.Create(ctx, &req); err != nil {
 		log.Printf("Service: Create user error: %v", err)
 		return nil, err
@@ -60,18 +58,18 @@ func (s *service) GetUser(ctx context.Context, id int) (*domain.User, error) {
 }
 
 func (s *service) UpdateUser(ctx context.Context, id int, updates map[string]any) (*domain.User, error) {
-	// 1. Check if user exists first (Optional, but good for business logic)
+	// Check if user exists first (Optional, but good for business logic)
 	_, err := s.repo.ReadOne(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2. Perform the partial update
+	// Perform the partial update
 	if err := s.repo.Update(ctx, id, updates); err != nil {
 		return nil, err
 	}
 
-	// 3. Return the fresh user data
+	// Return the fresh user data
 	return s.repo.ReadOne(ctx, id)
 }
 
@@ -80,7 +78,7 @@ func (s *service) RemoveUser(ctx context.Context, id int) error {
 }
 
 func (s *service) GetTrashedUsers(ctx context.Context) ([]*domain.User, error) {
-	// We pass an empty filter map to get all trashed users
+	// We pass an empty filter map to get all trashed users for now
 	return s.repo.Trash(ctx, make(map[string]any))
 }
 
