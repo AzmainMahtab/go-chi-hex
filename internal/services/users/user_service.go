@@ -77,6 +77,14 @@ func (s *service) RemoveUser(ctx context.Context, id int) error {
 	return s.repo.SoftDelete(ctx, id)
 }
 
+func (s *service) RestoreUser(ctx context.Context, id int) (*domain.User, error) {
+	if err := s.repo.Restore(ctx, id); err != nil {
+		return nil, err
+	}
+
+	return s.repo.ReadOne(ctx, id)
+}
+
 func (s *service) GetTrashedUsers(ctx context.Context) ([]*domain.User, error) {
 	// We pass an empty filter map to get all trashed users for now
 	return s.repo.Trash(ctx, make(map[string]any))

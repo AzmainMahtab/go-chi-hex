@@ -72,6 +72,7 @@ func (r *UserRepo) ReadAll(ctx context.Context, filter map[string]any, showDelet
 
 	// SelectContext handles the loop and scanning for us
 	err := r.db.SelectContext(ctx, &users, finalQuery, args...)
+
 	return users, err
 }
 
@@ -101,6 +102,7 @@ func (r *UserRepo) Update(ctx context.Context, id int, updates map[string]any) e
 
 	// NamedExec is great for maps! It matches map keys to :placeholders
 	_, err := r.db.NamedExecContext(ctx, query, updates)
+
 	return err
 }
 
@@ -108,6 +110,15 @@ func (r *UserRepo) Update(ctx context.Context, id int, updates map[string]any) e
 func (r *UserRepo) SoftDelete(ctx context.Context, id int) error {
 	query := `UPDATE "user" SET deleted_at = NOW(), user_status = 'inactive' WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id)
+
+	return err
+}
+
+// Restore() restores a trashed user
+func (r *UserRepo) Restore(ctx context.Context, id int) error {
+	query := `UPDATE "user" SET deleted_at = NULL, updated_at = NOW(), user_status = 'active' WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, query, id)
+
 	return err
 }
 

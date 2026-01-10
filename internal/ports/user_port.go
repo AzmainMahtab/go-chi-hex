@@ -24,6 +24,9 @@ type UserRepository interface {
 	// SoftDelete soft deletes a user set deleted_at current and user_status = 'inactive'
 	SoftDelete(ctx context.Context, id int) error
 
+	// Restore restore a soft deleted user
+	Restore(ctx context.Context, id int) error
+
 	// Trash lets you read soft deleted users with optional filtering
 	Trash(ctx context.Context, filter map[string]any) ([]*domain.User, error)
 
@@ -45,6 +48,9 @@ type UserService interface {
 
 	// RemoveUser soft-deletes a user from the active system.
 	RemoveUser(ctx context.Context, id int) error
+
+	// RestoreUser restores a softdeleted user
+	RestoreUser(ctx context.Context, id int) (*domain.User, error)
 
 	// GetTrashedUsers retrieves users that have been soft-deleted.
 	GetTrashedUsers(ctx context.Context) ([]*domain.User, error)

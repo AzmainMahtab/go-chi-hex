@@ -49,18 +49,19 @@ func userRouter(uh *handlers.UserHandler) http.Handler {
 	r := chi.NewRouter()
 
 	// General User Routes
-	r.Post("/", uh.Register) // POST /users
-	r.Get("/", uh.List)      // GET /users
+	r.Post("/", uh.Register) // POST /user
+	r.Get("/", uh.List)      // GET /user
 
 	// Special route for trashed users
-	r.Get("/trash", uh.GetTrashed) // GET /users/trash
+	r.Get("/trash", uh.GetTrashed) // GET /user/trash
 
 	// Specific User ID Routes
 	r.Route("/{id}", func(r chi.Router) {
-		r.Get("/", uh.GetByID)       // GET /users/{id}
-		r.Patch("/", uh.Update)      // PATCH /users/{id}
-		r.Delete("/", uh.Remove)     // DELETE /users/{id} (Soft Delete)
-		r.Delete("/prune", uh.Prune) // DELETE /users/{id}/prune (Permanent)
+		r.Get("/", uh.GetByID)          // GET /user/{id}
+		r.Patch("/", uh.Update)         // PATCH /user/{id}
+		r.Delete("/", uh.Remove)        // DELETE /user/{id} (Soft Delete)
+		r.Patch("/restore", uh.Restore) // PATCH /user/{id}/restore (restore user)
+		r.Delete("/prune", uh.Prune)    // DELETE /user/{id}/prune (Permanent)
 	})
 
 	return r

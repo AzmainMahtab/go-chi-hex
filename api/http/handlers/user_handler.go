@@ -139,6 +139,33 @@ func (h *UserHandler) Remove(w http.ResponseWriter, r *http.Request) {
 	jsonutil.WriteJSON(w, http.StatusNoContent, nil, nil, "User moved to trash")
 }
 
+// Restore godoc
+// @Summary      Restore a delete user
+// @Description  Restore a user that has been soft deleted
+// @Tags         user
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      200  {object}  dto.UserResponse
+// @Failure      400  {object}  string "Invalid ID"
+// @Failure      500  {object}  string "Internal Server Error"
+// @Router       /user/{id}/restore [patch]
+func (h *UserHandler) Restore(w http.ResponseWriter, r *http.Request) {
+	id, err := ReadIDPeram(r)
+	if err != nil {
+		return
+	}
+
+	user, err := h.svc.RestoreUser(r.Context(), id)
+	if err != nil {
+		return
+	}
+
+	if err := jsonutil.WriteJSON(w, http.StatusOK, h.mapToResponse(user), nil, "User restored"); err != nil {
+		log.Printf("Handler: GetTrashed error: %v", err)
+		return
+	}
+}
+
 // GetTrashed godoc
 // @Summary      List soft-deleted users
 // @Description  Retrieves all users where deleted_at is not null

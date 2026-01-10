@@ -189,6 +189,33 @@ paths:
       summary: Permanently delete a user
       tags:
       - user
+  /user/{id}/restore:
+    patch:
+      description: Restore a user that has been soft deleted
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Restore a delete user
+      tags:
+      - user
   /user/trash:
     get:
       description: Retrieves all users where deleted_at is not null
