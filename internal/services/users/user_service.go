@@ -4,7 +4,6 @@ package users
 
 import (
 	"context"
-	"errors"
 	"log"
 
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
@@ -67,10 +66,18 @@ func (s *service) ListUsers(ctx context.Context, filters map[string]any) ([]*dom
 func (s *service) GetUser(ctx context.Context, id int) (*domain.User, error) {
 	u, err := s.repo.ReadOne(ctx, id)
 	if err != nil {
-		return nil, err
-	}
-	if u == nil {
-		return nil, errors.New("user not found")
+		if u == nil {
+			return nil, &domain.AppError{
+				Code:    domain.CodeNotFound,
+				Message: "User not found",
+				Err:     err,
+			}
+		}
+		return nil, &domain.AppError{
+			Code:    domain.CodeInternal,
+			Message: "Something went wrong in user fetching",
+			Err:     err,
+		}
 	}
 	return u, nil
 }

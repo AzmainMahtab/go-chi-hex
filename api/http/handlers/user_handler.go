@@ -77,13 +77,15 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 // @Success      200  {object}  dto.UserResponse
 // @Router       /user/{id} [get]
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	id, err := ReadIDPeram(r)
+	id, err := ReadIDParam(r)
 	if err != nil {
+		HandleError(w, err)
 		return
 	}
 
 	user, err := h.svc.GetUser(r.Context(), id)
 	if err != nil {
+		HandleError(w, err)
 		return
 	}
 
@@ -100,8 +102,9 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 // @Success      200   {object}  dto.UserResponse
 // @Router       /user/{id} [patch]
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
-	id, err := ReadIDPeram(r)
+	id, err := ReadIDParam(r)
 	if err != nil {
+		HandleError(w, err)
 		return
 	}
 
@@ -129,7 +132,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 // @Success      204  "No Content"
 // @Router       /user/{id} [delete]
 func (h *UserHandler) Remove(w http.ResponseWriter, r *http.Request) {
-	id, err := ReadIDPeram(r)
+	id, err := ReadIDParam(r)
 	if err != nil {
 		return
 	}
@@ -152,7 +155,7 @@ func (h *UserHandler) Remove(w http.ResponseWriter, r *http.Request) {
 // @Failure      500  {object}  string "Internal Server Error"
 // @Router       /user/{id}/restore [patch]
 func (h *UserHandler) Restore(w http.ResponseWriter, r *http.Request) {
-	id, err := ReadIDPeram(r)
+	id, err := ReadIDParam(r)
 	if err != nil {
 		return
 	}
@@ -199,7 +202,7 @@ func (h *UserHandler) GetTrashed(w http.ResponseWriter, r *http.Request) {
 // @Failure      500  {object}  string "Internal Server Error"
 // @Router       /user/{id}/prune [delete]
 func (h *UserHandler) Prune(w http.ResponseWriter, r *http.Request) {
-	id, err := ReadIDPeram(r)
+	id, err := ReadIDParam(r)
 	if err != nil {
 		return
 	}
