@@ -22,6 +22,24 @@ func NewUserService(repo ports.UserRepository) ports.UserService {
 
 // RegisterUser takes a domain.User and registers a user
 func (s *service) RegisterUser(ctx context.Context, req domain.User) (*domain.User, error) {
+
+	conflict, err := s.repo.CheckConflict(ctx, req.UserName, req.Email, req.Phone)
+	if err != nil {
+		return nil, &domain.AppError{
+			Code:    domain.CodeInternal,
+			Message: "Database check failed",
+			Err:     err,
+		}
+	}
+
+	if len(conflict) > 0 {
+		return nil, &domain.AppError{
+			Code:    domain.CodeConflict,
+			Message: "User register failed: Conflicting values",
+			Errors:  conflict,
+		}
+	}
+
 	hashedPass, err := s.hashPassword(req.Password)
 	if err != nil {
 		return nil, err

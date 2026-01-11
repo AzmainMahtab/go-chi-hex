@@ -31,6 +31,7 @@ func NewUserHandler(svc ports.UserService) *UserHandler {
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req dto.RegisterUserRequest
 	if err := jsonutil.ReadJSON(w, r, &req); err != nil {
+		jsonutil.BadRequestResponse(w, "Bad Request", nil)
 		return
 	}
 
@@ -44,6 +45,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.svc.RegisterUser(r.Context(), userDomain)
 	if err != nil {
+		HandleError(w, err)
 		log.Printf("SVC ERR: %v", err)
 		return
 	}

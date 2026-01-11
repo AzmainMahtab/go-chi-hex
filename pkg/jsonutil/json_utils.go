@@ -166,3 +166,8 @@ func ServerErrorResponse(w http.ResponseWriter, loggerErr error) {
 func NotFoundResponse(w http.ResponseWriter, message string) {
 	ErrorResponse(w, http.StatusNotFound, message, nil)
 }
+
+// ConflictResponse() for conflicting data
+func ConflictResponse(w http.ResponseWriter, message string, errors []ErrorItem) {
+	ErrorResponse(w, http.StatusConflict, message, errors)
+}

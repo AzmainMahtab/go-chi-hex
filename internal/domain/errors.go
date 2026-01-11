@@ -1,3 +1,5 @@
+// Package domain
+// This one deals with app level errors
 package domain
 
 import "fmt"
@@ -12,12 +14,18 @@ const (
 	CodeValidation ErrorCode = "VALIDATION"
 )
 
+type ErrorItem struct {
+	Field   string
+	Message string
+}
+
 // AppError is the custom domain error
 type AppError struct {
 	Code    ErrorCode
 	Message string
+	Errors  []ErrorItem
 	Field   string
-	Err     error // The original error for logging
+	Err     error
 }
 
 func (e *AppError) Error() string {

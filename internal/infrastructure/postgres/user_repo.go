@@ -6,9 +6,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
+
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/jmoiron/sqlx"
-	"strings"
 )
 
 type UserRepo struct {
@@ -32,7 +33,7 @@ func (r *UserRepo) Create(ctx context.Context, u *domain.User) error {
 	// NamedQueryContext maps :user_name to u.UserName via tags
 	rows, err := r.db.NamedQueryContext(ctx, query, u)
 	if err != nil {
-		return err
+		return MapError(err)
 	}
 	defer rows.Close()
 
@@ -51,9 +52,9 @@ func (r *UserRepo) ReadOne(ctx context.Context, id int) (*domain.User, error) {
 	err := r.db.GetContext(ctx, u, query, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil // Or a specific domain error
+			return nil, MapError(err) // Or a specific domain error
 		}
-		return nil, err
+		return nil, MapError(err)
 	}
 	return u, nil
 }
@@ -73,7 +74,7 @@ func (r *UserRepo) ReadAll(ctx context.Context, filter map[string]any, showDelet
 	// SelectContext handles the loop and scanning for us
 	err := r.db.SelectContext(ctx, &users, finalQuery, args...)
 
-	return users, err
+	return users, MapError(err)
 }
 
 // Update() updates an user entity
@@ -103,7 +104,7 @@ func (r *UserRepo) Update(ctx context.Context, id int, updates map[string]any) e
 	// NamedExec is great for maps! It matches map keys to :placeholders
 	_, err := r.db.NamedExecContext(ctx, query, updates)
 
-	return err
+	return MapError(err)
 }
 
 // SoftDelete() soft delets an user with status set to inactive and deleted_at date
@@ -111,7 +112,7 @@ func (r *UserRepo) SoftDelete(ctx context.Context, id int) error {
 	query := `UPDATE "user" SET deleted_at = NOW(), user_status = 'inactive' WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id)
 
-	return err
+	return MapError(err)
 }
 
 // Restore() restores a trashed user
@@ -119,7 +120,7 @@ func (r *UserRepo) Restore(ctx context.Context, id int) error {
 	query := `UPDATE "user" SET deleted_at = NULL, updated_at = NOW(), user_status = 'active' WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id)
 
-	return err
+	return MapError(err)
 }
 
 // Trash() reads all the deletedusers
@@ -130,14 +131,46 @@ func (r *UserRepo) Trash(ctx context.Context, filter map[string]any) ([]*domain.
 	finalQuery, args := r.appendFilters(query, filter)
 
 	err := r.db.SelectContext(ctx, &users, finalQuery, args...)
-	return users, err
+	return users, MapError(err)
 }
 
 // Prune() hard deletes an user
 func (r *UserRepo) Prune(ctx context.Context, id int) error {
 	query := `DELETE FROM "user" WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id)
-	return err
+	return MapError(err)
+}
+
+func (r *UserRepo) CheckConflict(ctx context.Context, username, email, phone string) ([]domain.ErrorItem, error) {
+	query := `
+		SELECT 
+			EXISTS(SELECT 1 FROM "user" WHERE user_name = $1 AND deleted_at IS NULL) as username_taken,
+			EXISTS(SELECT 1 FROM "user" WHERE email = $2 AND deleted_at IS NULL) as email_taken,
+			EXISTS(SELECT 1 FROM "user" WHERE phone = $3 AND deleted_at IS NULL) as phone_taken
+	`
+
+	var res struct {
+		UsernameTaken bool `db:"username_taken"`
+		EmailTaken    bool `db:"email_taken"`
+		PhoneTaken    bool `db:"phone_taken"`
+	}
+
+	if err := r.db.GetContext(ctx, &res, query, username, email, phone); err != nil {
+		return nil, MapError(err)
+	}
+
+	var conflicts []domain.ErrorItem
+	if res.UsernameTaken {
+		conflicts = append(conflicts, domain.ErrorItem{Field: "user_name", Message: "username already taken"})
+	}
+	if res.EmailTaken {
+		conflicts = append(conflicts, domain.ErrorItem{Field: "email", Message: "email already registered"})
+	}
+	if res.PhoneTaken {
+		conflicts = append(conflicts, domain.ErrorItem{Field: "phone", Message: "phone number in use"})
+	}
+
+	return conflicts, nil
 }
 
 // HELPER FUCTIONS

@@ -32,6 +32,9 @@ type UserRepository interface {
 
 	// Pruen permanently delets a user
 	Prune(ctx context.Context, id int) error
+
+	// Checks the availability of a user entity
+	CheckConflict(ctx context.Context, username, email, phone string) ([]domain.ErrorItem, error)
 }
 
 type UserService interface {
