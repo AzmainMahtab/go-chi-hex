@@ -63,6 +63,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	users, err := h.svc.ListUsers(r.Context(), nil)
 	if err != nil {
+		HandleError(w, err)
 		return
 	}
 
@@ -79,7 +80,7 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := ReadIDParam(r)
 	if err != nil {
-		HandleError(w, err)
+		jsonutil.BadRequestResponse(w, "Bad request", nil)
 		return
 	}
 
@@ -104,12 +105,13 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := ReadIDParam(r)
 	if err != nil {
-		HandleError(w, err)
+		jsonutil.BadRequestResponse(w, "Bad request", nil)
 		return
 	}
 
 	var updates map[string]any
 	if err := jsonutil.ReadJSON(w, r, &updates); err != nil {
+		HandleError(w, err)
 		return
 	}
 
@@ -119,6 +121,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.svc.UpdateUser(r.Context(), id, updates)
 	if err != nil {
+		HandleError(w, err)
 		return
 	}
 
@@ -134,10 +137,12 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) Remove(w http.ResponseWriter, r *http.Request) {
 	id, err := ReadIDParam(r)
 	if err != nil {
+		jsonutil.BadRequestResponse(w, "Bad request", nil)
 		return
 	}
 
 	if err := h.svc.RemoveUser(r.Context(), id); err != nil {
+		HandleError(w, err)
 		return
 	}
 
@@ -157,16 +162,19 @@ func (h *UserHandler) Remove(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) Restore(w http.ResponseWriter, r *http.Request) {
 	id, err := ReadIDParam(r)
 	if err != nil {
+		jsonutil.BadRequestResponse(w, "Bad request", nil)
 		return
 	}
 
 	user, err := h.svc.RestoreUser(r.Context(), id)
 	if err != nil {
+		HandleError(w, err)
 		return
 	}
 
 	if err := jsonutil.WriteJSON(w, http.StatusOK, h.mapToResponse(user), nil, "User restored"); err != nil {
 		log.Printf("Handler: GetTrashed error: %v", err)
+		HandleError(w, err)
 		return
 	}
 }
@@ -182,12 +190,13 @@ func (h *UserHandler) GetTrashed(w http.ResponseWriter, r *http.Request) {
 	users, err := h.svc.GetTrashedUsers(r.Context())
 	if err != nil {
 		log.Printf("Handler: GetTrashed error: %v", err)
-		//  jsonutil handles the error response
+		HandleError(w, err)
 		return
 	}
 
 	if err := jsonutil.WriteJSON(w, http.StatusOK, h.mapSliceToResponse(users), nil, "Trash fetched successfully"); err != nil {
 		log.Printf("Handler: WriteJSON error: %v", err)
+		HandleError(w, err)
 		return
 	}
 }
@@ -204,15 +213,18 @@ func (h *UserHandler) GetTrashed(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) Prune(w http.ResponseWriter, r *http.Request) {
 	id, err := ReadIDParam(r)
 	if err != nil {
+		jsonutil.BadRequestResponse(w, "Bad request", nil)
 		return
 	}
 
 	if err := h.svc.PermanentlyDeleteUser(r.Context(), id); err != nil {
 		log.Printf("Handler: Prune error for ID %d: %v", id, err)
+		HandleError(w, err)
 		return
 	}
 
 	if err := jsonutil.WriteJSON(w, http.StatusNoContent, nil, nil, "User permanently deleted"); err != nil {
+		HandleError(w, err)
 		return
 	}
 }

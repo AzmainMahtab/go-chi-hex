@@ -15,3 +15,20 @@ type User struct {
 	UpdatedAt  time.Time  `db:"updated_at"`
 	DeletedAt  *time.Time `db:"deleted_at"`
 }
+
+type UserFilter struct {
+	UserName    string
+	Email       string
+	Phone       string
+	ShowDeleted bool
+	Limit       int
+	Offset      int
+}
+
+type UserUpdate struct {
+	ID       int
+	UserName *string
+	Email    *string
+	Phone    *string
+	Status   *string
+}
