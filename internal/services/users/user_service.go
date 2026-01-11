@@ -41,7 +41,11 @@ func (s *service) RegisterUser(ctx context.Context, req domain.User) (*domain.Us
 
 	hashedPass, err := s.hashPassword(req.Password)
 	if err != nil {
-		return nil, err
+		return nil, &domain.AppError{
+			Code:    domain.CodeInternal,
+			Message: "Password could not be hashedPass",
+			Err:     err,
+		}
 	}
 	req.Password = hashedPass
 
@@ -58,7 +62,11 @@ func (s *service) ListUsers(ctx context.Context, filters map[string]any) ([]*dom
 	users, err := s.repo.ReadAll(ctx, filters, false)
 	if err != nil {
 		log.Printf("Service: ReadAll error: %v", err)
-		return nil, err
+		return nil, &domain.AppError{
+			Code:    domain.CodeInternal,
+			Message: "User List: Failed",
+			Err:     err,
+		}
 	}
 	return users, nil
 }
@@ -86,12 +94,20 @@ func (s *service) UpdateUser(ctx context.Context, id int, updates map[string]any
 	// Check if user exists first (Optional, but good for business logic)
 	_, err := s.repo.ReadOne(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, &domain.AppError{
+			Code:    domain.CodeNotFound,
+			Message: "Resource Not found",
+			Err:     err,
+		}
 	}
 
 	// Perform the partial update
 	if err := s.repo.Update(ctx, id, updates); err != nil {
-		return nil, err
+		return nil, &domain.AppError{
+			Code:    domain.CodeInternal,
+			Message: "Action could not be performed",
+			Err:     err,
+		}
 	}
 
 	// Return the fresh user data
@@ -99,24 +115,92 @@ func (s *service) UpdateUser(ctx context.Context, id int, updates map[string]any
 }
 
 func (s *service) RemoveUser(ctx context.Context, id int) error {
-	return s.repo.SoftDelete(ctx, id)
+	_, err := s.repo.ReadOne(ctx, id)
+	if err != nil {
+		return &domain.AppError{
+			Code:    domain.CodeNotFound,
+			Message: "Resource Not found",
+			Err:     err,
+		}
+	}
+
+	err = s.repo.SoftDelete(ctx, id)
+	if err != nil {
+		return &domain.AppError{
+			Code:    domain.CodeInternal,
+			Message: "Action could not be performed",
+			Err:     err,
+		}
+	}
+	return nil
+
 }
 
 func (s *service) RestoreUser(ctx context.Context, id int) (*domain.User, error) {
-	if err := s.repo.Restore(ctx, id); err != nil {
-		return nil, err
+	_, err := s.repo.ReadOne(ctx, id)
+	if err != nil {
+		return nil, &domain.AppError{
+			Code:    domain.CodeNotFound,
+			Message: "Resource not found",
+			Err:     err,
+		}
+	}
+
+	err = s.repo.Restore(ctx, id)
+	if err != nil {
+		return nil, &domain.AppError{
+			Code:    domain.CodeInternal,
+			Message: "Action could not be performed",
+			Err:     err,
+		}
 	}
 
 	return s.repo.ReadOne(ctx, id)
+
 }
 
 func (s *service) GetTrashedUsers(ctx context.Context) ([]*domain.User, error) {
 	// We pass an empty filter map to get all trashed users for now
-	return s.repo.Trash(ctx, make(map[string]any))
+	usr, err := s.repo.Trash(ctx, make(map[string]any))
+	if err != nil {
+		return nil, &domain.AppError{
+			Code:    domain.CodeInternal,
+			Message: "Action could not be perforemed",
+			Err:     err,
+		}
+	}
+
+	return usr, nil
 }
 
 func (s *service) PermanentlyDeleteUser(ctx context.Context, id int) error {
-	return s.repo.Prune(ctx, id)
+	usr, err := s.repo.ReadOne(ctx, id)
+	if err != nil {
+		return &domain.AppError{
+			Code:    domain.CodeNotFound,
+			Message: "Resource not found",
+			Err:     err,
+		}
+	}
+
+	if usr.UserStatus != "inactive" {
+		return &domain.AppError{
+			Code:    domain.CodeValidation,
+			Message: "Can not delete active user",
+			Err:     err,
+		}
+	}
+
+	err = s.repo.Prune(ctx, id)
+	if err != nil {
+		return &domain.AppError{
+			Code:    domain.CodeInternal,
+			Message: "Action could not be performed",
+			Err:     err,
+		}
+	}
+
+	return nil
 }
 
 // --- PRIVATE HELPERS ---
