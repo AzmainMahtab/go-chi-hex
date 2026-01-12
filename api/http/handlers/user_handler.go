@@ -31,6 +31,7 @@ func NewUserHandler(svc ports.UserService) *UserHandler {
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req dto.RegisterUserRequest
 	if err := jsonutil.ReadJSON(w, r, &req); err != nil {
+		jsonutil.BadRequestResponse(w, "Bad Request", nil)
 		return
 	}
 
@@ -44,6 +45,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.svc.RegisterUser(r.Context(), userDomain)
 	if err != nil {
+		HandleError(w, err)
 		log.Printf("SVC ERR: %v", err)
 		return
 	}
@@ -59,12 +61,26 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Success      200  {array}  dto.UserResponse
 // @Router       /user [get]
 func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
-	users, err := h.svc.ListUsers(r.Context(), nil)
+	// Extract and convert query parameters directly into the Domain Filter
+	filter := domain.UserFilter{
+		UserName:    r.URL.Query().Get("user_name"),
+		Email:       r.URL.Query().Get("email"),
+		Phone:       r.URL.Query().Get("phone"),
+		UserStatus:  r.URL.Query().Get("user_status"),
+		ShowDeleted: false,                         // Explicitly false for the active list
+		Limit:       ParseQueryInt(r, "limit", 10), // Default to 10
+		Offset:      ParseQueryInt(r, "offset", 0), // Default to 0
+	}
+
+	// Call Service
+	users, err := h.svc.ListUsers(r.Context(), filter)
 	if err != nil {
+		HandleError(w, err)
 		return
 	}
 
-	jsonutil.WriteJSON(w, http.StatusOK, h.mapSliceToResponse(users), nil, "User list fetched successfully")
+	//  Respond with the typed domain slice
+	jsonutil.WriteJSON(w, http.StatusOK, h.mapSliceToResponse(users), nil, "Active users retrieved")
 }
 
 // GetByID godoc
@@ -75,13 +91,15 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 // @Success      200  {object}  dto.UserResponse
 // @Router       /user/{id} [get]
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	id, err := ReadIDPeram(r)
+	id, err := ReadIDParam(r)
 	if err != nil {
+		jsonutil.BadRequestResponse(w, "Bad request", nil)
 		return
 	}
 
 	user, err := h.svc.GetUser(r.Context(), id)
 	if err != nil {
+		HandleError(w, err)
 		return
 	}
 
@@ -98,26 +116,37 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 // @Success      200   {object}  dto.UserResponse
 // @Router       /user/{id} [patch]
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
-	id, err := ReadIDPeram(r)
+	id, err := ReadIDParam(r)
 	if err != nil {
+		HandleError(w, err)
 		return
 	}
 
-	var updates map[string]any
-	if err := jsonutil.ReadJSON(w, r, &updates); err != nil {
+	// Decode JSON into DTO
+	var req dto.UpdateUserRequest
+	if err := jsonutil.ReadJSON(w, r, &req); err != nil {
+		// HandleJSONError is a good place for bad JSON syntax
+		jsonutil.BadRequestResponse(w, err.Error(), nil)
 		return
 	}
 
-	// IMPORTANT: remove keys that shouldn't be updated via API
-	delete(updates, "id")
-	delete(updates, "created_at")
+	// Map DTO to Domain.UserUpdate (Strictly Typed)
+	updateParams := domain.UserUpdate{
+		ID:       id,
+		UserName: req.UserName,
+		Email:    req.Email,
+		Phone:    req.Phone,
+		Status:   req.Status,
+	}
 
-	user, err := h.svc.UpdateUser(r.Context(), id, updates)
+	// Execute Service
+	updatedUser, err := h.svc.UpdateUser(r.Context(), updateParams)
 	if err != nil {
+		HandleError(w, err)
 		return
 	}
 
-	jsonutil.WriteJSON(w, http.StatusOK, h.mapToResponse(user), nil, "User updated successfully")
+	jsonutil.WriteJSON(w, http.StatusOK, h.mapToResponse(updatedUser), nil, "User updated successfully")
 }
 
 // Remove godoc
@@ -127,12 +156,14 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 // @Success      204  "No Content"
 // @Router       /user/{id} [delete]
 func (h *UserHandler) Remove(w http.ResponseWriter, r *http.Request) {
-	id, err := ReadIDPeram(r)
+	id, err := ReadIDParam(r)
 	if err != nil {
+		jsonutil.BadRequestResponse(w, "Bad request", nil)
 		return
 	}
 
 	if err := h.svc.RemoveUser(r.Context(), id); err != nil {
+		HandleError(w, err)
 		return
 	}
 
@@ -150,18 +181,21 @@ func (h *UserHandler) Remove(w http.ResponseWriter, r *http.Request) {
 // @Failure      500  {object}  string "Internal Server Error"
 // @Router       /user/{id}/restore [patch]
 func (h *UserHandler) Restore(w http.ResponseWriter, r *http.Request) {
-	id, err := ReadIDPeram(r)
+	id, err := ReadIDParam(r)
 	if err != nil {
+		jsonutil.BadRequestResponse(w, "Bad request", nil)
 		return
 	}
 
 	user, err := h.svc.RestoreUser(r.Context(), id)
 	if err != nil {
+		HandleError(w, err)
 		return
 	}
 
 	if err := jsonutil.WriteJSON(w, http.StatusOK, h.mapToResponse(user), nil, "User restored"); err != nil {
 		log.Printf("Handler: GetTrashed error: %v", err)
+		HandleError(w, err)
 		return
 	}
 }
@@ -174,17 +208,22 @@ func (h *UserHandler) Restore(w http.ResponseWriter, r *http.Request) {
 // @Success      200  {array}   dto.UserResponse
 // @Router       /user/trash [get]
 func (h *UserHandler) GetTrashed(w http.ResponseWriter, r *http.Request) {
-	users, err := h.svc.GetTrashedUsers(r.Context())
+	filter := domain.UserFilter{
+		UserName:    r.URL.Query().Get("user_name"),
+		Email:       r.URL.Query().Get("email"),
+		ShowDeleted: true, // Internal logic for the repository
+		Limit:       ParseQueryInt(r, "limit", 10),
+		Offset:      ParseQueryInt(r, "offset", 0),
+	}
+
+	// 2. Call the dedicated Trash service method
+	users, err := h.svc.GetTrashedUsers(r.Context(), filter)
 	if err != nil {
-		log.Printf("Handler: GetTrashed error: %v", err)
-		//  jsonutil handles the error response
+		HandleError(w, err)
 		return
 	}
 
-	if err := jsonutil.WriteJSON(w, http.StatusOK, h.mapSliceToResponse(users), nil, "Trash fetched successfully"); err != nil {
-		log.Printf("Handler: WriteJSON error: %v", err)
-		return
-	}
+	jsonutil.WriteJSON(w, http.StatusOK, h.mapSliceToResponse(users), nil, "Secret trash retrieved")
 }
 
 // Prune godoc
@@ -197,17 +236,20 @@ func (h *UserHandler) GetTrashed(w http.ResponseWriter, r *http.Request) {
 // @Failure      500  {object}  string "Internal Server Error"
 // @Router       /user/{id}/prune [delete]
 func (h *UserHandler) Prune(w http.ResponseWriter, r *http.Request) {
-	id, err := ReadIDPeram(r)
+	id, err := ReadIDParam(r)
 	if err != nil {
+		jsonutil.BadRequestResponse(w, "Bad request", nil)
 		return
 	}
 
 	if err := h.svc.PermanentlyDeleteUser(r.Context(), id); err != nil {
 		log.Printf("Handler: Prune error for ID %d: %v", id, err)
+		HandleError(w, err)
 		return
 	}
 
 	if err := jsonutil.WriteJSON(w, http.StatusNoContent, nil, nil, "User permanently deleted"); err != nil {
+		HandleError(w, err)
 		return
 	}
 }

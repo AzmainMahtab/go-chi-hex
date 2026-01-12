@@ -16,6 +16,7 @@ type UpdateUserRequest struct {
 	UserName *string `json:"user_name,omitempty"`
 	Email    *string `json:"email,omitempty"`
 	Phone    *string `json:"phone,omitempty"`
+	Status   *string `json:"status,omitempty"`
 }
 
 // UserResponse is what we send back
