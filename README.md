@@ -12,6 +12,18 @@ This project focuses on type safety, separation of concerns, and long-term maint
   </a>
 </p>
 
+**Core Libraries**
+
+| Libraries | Purpose | Repo |
+|-----------|---------|------|
+|Chi        |Routing  |[link](https://github.com/go-chi/chi)|
+|Validator  |DTO Validation| [link](https://github.com/go-playground/validator)|
+|pgx        |Postgres Drover| [link](https://github.com/jackc/pgx)|
+|sqlx       |Data binding from DB to domain| [link](https://github.com/jmoiron/sqlx)|
+|godotenv   |ENV management | [link](https://github.com/joho/godotenv)|
+|swaggo     |Swagger documentation| [link](https://github.com/swaggo/swag)|
+
+
 ## Progress ##
 
 ✅ Implemented | 🔄 In Progress/Planned
