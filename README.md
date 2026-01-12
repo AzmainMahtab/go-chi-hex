@@ -1,4 +1,4 @@
-## 🚀 󱃲 Go Hexagonal Architecture (DDD) Boilerplate ##
+## 🚀  Go Hexagonal Architecture (DDD) Boilerplate ##
 
 A production-ready, strictly typed implementation of Hexagonal Architecture (Ports and Adapters) using Domain-Driven Design (DDD) principles in Go.
 
