@@ -1,4 +1,4 @@
-package utils
+package apiutil
 
 import (
 	"github.com/AzmainMahtab/go-chi-hex/pkg/jsonutil"

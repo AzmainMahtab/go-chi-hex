@@ -8,8 +8,11 @@ definitions:
         minLength: 8
         type: string
       phone:
+        description: e164 ensures international phone format
         type: string
       user_name:
+        maxLength: 32
+        minLength: 3
         type: string
     required:
     - email
@@ -24,8 +27,14 @@ definitions:
       phone:
         type: string
       status:
+        enum:
+        - active
+        - inactive
+        - suspended
         type: string
       user_name:
+        maxLength: 32
+        minLength: 3
         type: string
     type: object
   dto.UserResponse:

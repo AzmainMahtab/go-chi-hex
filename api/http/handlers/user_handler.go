@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/AzmainMahtab/go-chi-hex/api/http/apiutil"
 	"github.com/AzmainMahtab/go-chi-hex/api/http/dto"
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
@@ -32,6 +33,11 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req dto.RegisterUserRequest
 	if err := jsonutil.ReadJSON(w, r, &req); err != nil {
 		jsonutil.BadRequestResponse(w, "Bad Request", nil)
+		return
+	}
+
+	if errs := apiutil.ValidateStruct(req); errs != nil {
+		jsonutil.BadRequestResponse(w, "Invalid data", errs)
 		return
 	}
 

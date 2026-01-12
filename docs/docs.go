@@ -312,10 +312,13 @@ const docTemplate = `{
                     "minLength": 8
                 },
                 "phone": {
+                    "description": "e164 ensures international phone format",
                     "type": "string"
                 },
                 "user_name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 3
                 }
             }
         },
@@ -329,10 +332,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "active",
+                        "inactive",
+                        "suspended"
+                    ]
                 },
                 "user_name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 3
                 }
             }
         },
