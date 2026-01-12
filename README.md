@@ -1,7 +1,8 @@
-## Intro ##
+## 🚀 Go Hexagonal Architecture (DDD) Boilerplate ##
 
-Docpad is a webapplication for doctors to manage and mentain visits with their patients.
-This has strong encription for sensetive paitent data and a user friendly interface.
+A production-ready, strictly typed implementation of Hexagonal Architecture (Ports and Adapters) using Domain-Driven Design (DDD) principles in Go.
+
+This project focuses on type safety, separation of concerns, and long-term maintainability, moving away from "stringly-typed" maps and towards a robust domain-centric core.
 
 ## Progress ##
 
