@@ -1,8 +1,16 @@
 ## 🚀  Go Hexagonal Architecture (DDD) Boilerplate ##
 
-A production-ready, strictly typed implementation of Hexagonal Architecture (Ports and Adapters) using Domain-Driven Design (DDD) principles in Go.
+A production-ready, strictly typed implementation of **Hexagonal Architecture** (Ports and Adapters) using **Domain-Driven Design** (DDD) principles in Go.
 
-This project focuses on type safety, separation of concerns, and long-term maintainability, moving away from "stringly-typed" maps and towards a robust domain-centric core.
+This project focuses on type safety, separation of concerns, and long-term maintainability, moving away from tightly coupled dependencies towards a robust domain-centric core.
+
+## Technology ##
+
+<p align="center">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=go,postgres,docker" />
+  </a>
+</p>
 
 ## Progress ##
 
