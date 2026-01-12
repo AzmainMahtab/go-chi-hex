@@ -6,7 +6,7 @@ This project focuses on type safety, separation of concerns, and long-term maint
 
 ## Technology ##
 
-<p align="center">
+<p align="left">
   <a href="https://skillicons.dev">
     <img src="https://skillicons.dev/icons?i=go,postgres,docker" />
   </a>
