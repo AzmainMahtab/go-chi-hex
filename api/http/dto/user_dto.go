@@ -6,17 +6,18 @@ import "time"
 
 // RegisterUserRequest is what the client sends
 type RegisterUserRequest struct {
-	UserName string `json:"user_name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Phone    string `json:"phone" binding:"required"`
-	Password string `json:"password" binding:"required,min=8"`
+	UserName string `json:"user_name" validate:"required,min=3,max=32"`
+	Email    string `json:"email" validate:"required,email"`
+	Phone    string `json:"phone" validate:"required,e164"` // e164 ensures international phone format
+	Password string `json:"password" validate:"required,min=8"`
 }
 
+// UpdateUserRequest is what the handler recives
 type UpdateUserRequest struct {
-	UserName *string `json:"user_name,omitempty"`
-	Email    *string `json:"email,omitempty"`
-	Phone    *string `json:"phone,omitempty"`
-	Status   *string `json:"status,omitempty"`
+	UserName *string `json:"user_name,omitempty" validate:"omitempty,min=3,max=32"`
+	Email    *string `json:"email,omitempty" validate:"omitempty,email"`
+	Phone    *string `json:"phone,omitempty" validate:"omitempty,e164"`
+	Status   *string `json:"status,omitempty" validate:"omitempty,oneof=active inactive suspended"`
 }
 
 // UserResponse is what we send back
