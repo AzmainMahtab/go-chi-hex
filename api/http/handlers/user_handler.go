@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/AzmainMahtab/go-chi-hex/api/http/apiutil"
 	"github.com/AzmainMahtab/go-chi-hex/api/http/dto"
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
@@ -32,6 +33,11 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req dto.RegisterUserRequest
 	if err := jsonutil.ReadJSON(w, r, &req); err != nil {
 		jsonutil.BadRequestResponse(w, "Bad Request", nil)
+		return
+	}
+
+	if errs := apiutil.ValidateStruct(req); errs != nil {
+		jsonutil.BadRequestResponse(w, "Invalid data", errs)
 		return
 	}
 
@@ -125,9 +131,12 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	// Decode JSON into DTO
 	var req dto.UpdateUserRequest
 	if err := jsonutil.ReadJSON(w, r, &req); err != nil {
-		// HandleJSONError is a good place for bad JSON syntax
-		jsonutil.BadRequestResponse(w, err.Error(), nil)
+		jsonutil.BadRequestResponse(w, "Bad request", nil)
 		return
+	}
+
+	if errs := apiutil.ValidateStruct(req); errs != nil {
+		jsonutil.BadRequestResponse(w, "Invalid data", errs)
 	}
 
 	// Map DTO to Domain.UserUpdate (Strictly Typed)
