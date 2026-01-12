@@ -328,6 +328,9 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
+                "status": {
+                    "type": "string"
+                },
                 "user_name": {
                     "type": "string"
                 }

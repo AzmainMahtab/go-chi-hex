@@ -57,9 +57,9 @@ func (s *service) RegisterUser(ctx context.Context, req domain.User) (*domain.Us
 	return &req, nil
 }
 
-func (s *service) ListUsers(ctx context.Context, filters map[string]any) ([]*domain.User, error) {
+func (s *service) ListUsers(ctx context.Context, filters domain.UserFilter) ([]*domain.User, error) {
 	// showDeleted is false here because this is for "active" users
-	users, err := s.repo.ReadAll(ctx, filters, false)
+	users, err := s.repo.ReadAll(ctx, filters)
 	if err != nil {
 		log.Printf("Service: ReadAll error: %v", err)
 		return nil, &domain.AppError{
@@ -90,9 +90,9 @@ func (s *service) GetUser(ctx context.Context, id int) (*domain.User, error) {
 	return u, nil
 }
 
-func (s *service) UpdateUser(ctx context.Context, id int, updates map[string]any) (*domain.User, error) {
+func (s *service) UpdateUser(ctx context.Context, updates domain.UserUpdate) (*domain.User, error) {
 	// Check if user exists first (Optional, but good for business logic)
-	_, err := s.repo.ReadOne(ctx, id)
+	_, err := s.repo.ReadOne(ctx, updates.ID)
 	if err != nil {
 		return nil, &domain.AppError{
 			Code:    domain.CodeNotFound,
@@ -102,7 +102,7 @@ func (s *service) UpdateUser(ctx context.Context, id int, updates map[string]any
 	}
 
 	// Perform the partial update
-	if err := s.repo.Update(ctx, id, updates); err != nil {
+	if err := s.repo.Update(ctx, updates); err != nil {
 		return nil, &domain.AppError{
 			Code:    domain.CodeInternal,
 			Message: "Action could not be performed",
@@ -111,7 +111,7 @@ func (s *service) UpdateUser(ctx context.Context, id int, updates map[string]any
 	}
 
 	// Return the fresh user data
-	return s.repo.ReadOne(ctx, id)
+	return s.repo.ReadOne(ctx, updates.ID)
 }
 
 func (s *service) RemoveUser(ctx context.Context, id int) error {
@@ -137,7 +137,7 @@ func (s *service) RemoveUser(ctx context.Context, id int) error {
 }
 
 func (s *service) RestoreUser(ctx context.Context, id int) (*domain.User, error) {
-	_, err := s.repo.ReadOne(ctx, id)
+	_, err := s.repo.ReadOneDeleted(ctx, id)
 	if err != nil {
 		return nil, &domain.AppError{
 			Code:    domain.CodeNotFound,
@@ -159,9 +159,9 @@ func (s *service) RestoreUser(ctx context.Context, id int) (*domain.User, error)
 
 }
 
-func (s *service) GetTrashedUsers(ctx context.Context) ([]*domain.User, error) {
+func (s *service) GetTrashedUsers(ctx context.Context, filters domain.UserFilter) ([]*domain.User, error) {
 	// We pass an empty filter map to get all trashed users for now
-	usr, err := s.repo.Trash(ctx, make(map[string]any))
+	usr, err := s.repo.Trash(ctx, filters)
 	if err != nil {
 		return nil, &domain.AppError{
 			Code:    domain.CodeInternal,

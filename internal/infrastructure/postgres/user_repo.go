@@ -5,9 +5,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"strings"
-
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/jmoiron/sqlx"
 )
@@ -60,49 +57,96 @@ func (r *UserRepo) ReadOne(ctx context.Context, id int) (*domain.User, error) {
 }
 
 // ReadAll() reads all the user entities with deleted users (optional)
-func (r *UserRepo) ReadAll(ctx context.Context, filter map[string]any, showDeleted bool) ([]*domain.User, error) {
+func (r *UserRepo) ReadAll(ctx context.Context, filter domain.UserFilter) ([]*domain.User, error) {
 	var users []*domain.User
-	query := `SELECT * FROM "user" WHERE 1=1`
 
-	if !showDeleted {
-		query += " AND deleted_at IS NULL"
+	//  Start with the base query
+	query := `SELECT id, user_name, email, phone, user_status, created_at, updated_at 
+              FROM "user" WHERE 1=1`
+
+	//  Named arguments map for sqlx
+	args := make(map[string]any)
+
+	//  Apply Soft Delete filter
+	if !filter.ShowDeleted {
+		query += ` AND deleted_at IS NULL`
 	}
 
-	// using helper to build the query and get args
-	finalQuery, args := r.appendFilters(query, filter)
+	//  Build Dynamic Filters
+	if filter.UserName != "" {
+		query += ` AND user_name ILIKE :user_name`
+		args["user_name"] = "%" + filter.UserName + "%"
+	}
 
-	// SelectContext handles the loop and scanning for us
-	err := r.db.SelectContext(ctx, &users, finalQuery, args...)
+	if filter.Email != "" {
+		query += ` AND email = :email`
+		args["email"] = filter.Email
+	}
 
-	return users, MapError(err)
+	if filter.Phone != "" {
+		query += ` AND phone = :phone`
+		args["phone"] = filter.Phone
+	}
+
+	if filter.UserStatus != "" {
+		query += ` AND user_status = :user_status`
+		args["user_status"] = filter.UserStatus
+	}
+
+	//  Apply Pagination
+	if filter.Limit > 0 {
+		query += ` LIMIT :limit`
+		args["limit"] = filter.Limit
+	}
+	if filter.Offset > 0 {
+		query += ` OFFSET :offset`
+		args["offset"] = filter.Offset
+	}
+
+	//  Execute using NamedQuery
+	rows, err := r.db.NamedQueryContext(ctx, query, args)
+	if err != nil {
+		return nil, MapError(err)
+	}
+	defer rows.Close()
+
+	//  Scan results into the domain slice
+	for rows.Next() {
+		u := &domain.User{}
+		if err := rows.StructScan(u); err != nil {
+			return nil, MapError(err)
+		}
+		users = append(users, u)
+	}
+
+	// Check for errors during iteration
+	if err := rows.Err(); err != nil {
+		return nil, MapError(err)
+	}
+
+	return users, nil
 }
 
 // Update() updates an user entity
-func (r *UserRepo) Update(ctx context.Context, id int, updates map[string]any) error {
-	if len(updates) == 0 {
-		return nil
-	}
+func (r *UserRepo) Update(ctx context.Context, up domain.UserUpdate) error {
+	// --> APOINTED COMMENT: COALESCE ENSURES WE ONLY UPDATE PROVIDED FIELDS
+	query := `
+        UPDATE "user" 
+        SET 
+            user_name = COALESCE(:user_name, user_name),
+            email = COALESCE(:email, email),
+            phone = COALESCE(:phone, phone),
+            user_status = COALESCE(:user_status, user_status),
+            updated_at = NOW()
+        WHERE id = :id AND deleted_at IS NULL`
 
-	// Adding the ID to the map for the WHERE clause
-	updates["id"] = id
-
-	var sb strings.Builder
-	sb.WriteString(`UPDATE "user" SET `)
-
-	// Buildng the SET string: "user_name = :user_name, email = :email"
-	for col := range updates {
-		if col == "id" {
-			continue
-		}
-		sb.WriteString(fmt.Sprintf("%s = :%s, ", col, col))
-	}
-
-	// Finalize query string
-	query := strings.TrimSuffix(sb.String(), ", ")
-	query += " WHERE id = :id AND deleted_at IS NULL"
-
-	// NamedExec is great for maps! It matches map keys to :placeholders
-	_, err := r.db.NamedExecContext(ctx, query, updates)
+	_, err := r.db.NamedExecContext(ctx, query, map[string]any{
+		"id":          up.ID,
+		"user_name":   up.UserName,
+		"email":       up.Email,
+		"phone":       up.Phone,
+		"user_status": up.Status,
+	})
 
 	return MapError(err)
 }
@@ -124,14 +168,66 @@ func (r *UserRepo) Restore(ctx context.Context, id int) error {
 }
 
 // Trash() reads all the deletedusers
-func (r *UserRepo) Trash(ctx context.Context, filter map[string]any) ([]*domain.User, error) {
+func (r *UserRepo) Trash(ctx context.Context, filter domain.UserFilter) ([]*domain.User, error) {
 	var users []*domain.User
-	query := `SELECT * FROM "user" WHERE deleted_at IS NOT NULL`
 
-	finalQuery, args := r.appendFilters(query, filter)
+	// 1. Base Query - Note the IS NOT NULL constraint to keep the trash "secret"
+	query := `SELECT id, user_name, email, phone, user_status, created_at, updated_at, deleted_at 
+              FROM "user" 
+              WHERE deleted_at IS NOT NULL`
 
-	err := r.db.SelectContext(ctx, &users, finalQuery, args...)
-	return users, MapError(err)
+	args := make(map[string]any)
+
+	// 2. Build Dynamic Filters (Same logic as ReadAll, but restricted to Trash)
+	if filter.UserName != "" {
+		query += ` AND user_name ILIKE :user_name`
+		args["user_name"] = "%" + filter.UserName + "%"
+	}
+
+	if filter.Email != "" {
+		query += ` AND email = :email`
+		args["email"] = filter.Email
+	}
+
+	// 3. Apply Pagination (Always essential for Admin views with lots of data)
+	if filter.Limit > 0 {
+		query += ` LIMIT :limit`
+		args["limit"] = filter.Limit
+	}
+	if filter.Offset > 0 {
+		query += ` OFFSET :offset`
+		args["offset"] = filter.Offset
+	}
+
+	// 4. Execution
+	rows, err := r.db.NamedQueryContext(ctx, query, args)
+	if err != nil {
+		return nil, MapError(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		u := &domain.User{}
+		if err := rows.StructScan(u); err != nil {
+			return nil, MapError(err)
+		}
+		users = append(users, u)
+	}
+
+	return users, nil
+}
+
+func (r *UserRepo) ReadOneDeleted(ctx context.Context, id int) (*domain.User, error) {
+	query := `SELECT * FROM "user" WHERE id = $1 AND deleted_at IS NOT NULL`
+	u := &domain.User{}
+
+	err := r.db.GetContext(ctx, u, query, id)
+	if err != nil {
+		return nil, MapError(err)
+	}
+
+	return u, nil
+
 }
 
 // Prune() hard deletes an user
@@ -171,18 +267,4 @@ func (r *UserRepo) CheckConflict(ctx context.Context, username, email, phone str
 	}
 
 	return conflicts, nil
-}
-
-// HELPER FUCTIONS
-// appendFilters() helps you appednd the filters and build quries clause
-func (r *UserRepo) appendFilters(baseQuery string, filter map[string]any) (string, []any) {
-	var args []any
-	counter := strings.Count(baseQuery, "$") + 1
-
-	for column, value := range filter {
-		baseQuery += fmt.Sprintf(" AND %s = $%d", column, counter)
-		args = append(args, value)
-		counter++
-	}
-	return baseQuery, args
 }

@@ -21,6 +21,7 @@ type UserFilter struct {
 	Email       string
 	Phone       string
 	ShowDeleted bool
+	UserStatus  string
 	Limit       int
 	Offset      int
 }
