@@ -1,10 +1,16 @@
-## Go Hexagonal Architecture (DDD) Boilerplate ##
+## Gr Hexagonal Architecture (DDD) Boilerplate ##
 
 A production-ready, strictly typed implementation of **Hexagonal Architecture** (Ports and Adapters) using **Domain-Driven Design** (DDD) principles in Go.
 
 This project focuses on type safety, separation of concerns, and long-term maintainability, moving away from tightly coupled dependencies towards a robust domain-centric core.
 
-## 
+## Architectural Philosophy ##
+
+This project was made using **Hexagonal** structure to keep a strict separation between business rules and side effects. With **Domain-Driven Design (DDD)** adherence to the core business logic was enforced. The domain becomes the source of truth not the database schema. 
+
+### Dependency rule ###
+
+With dependency inversion all the dependencies only flow inward. The domain layer is plain go package, with no dependency with chi, postgres or third-party libraries. So the business logic is more or less "immortal". All the frameworks may change overtime and the implementations may have breaking changes but that doesn't affect the core business logic. Also allows a plug and play like nature where any component of the project can be switched without disrupting the main business logic. 
 
 ## Technology ##
 
