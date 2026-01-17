@@ -4,6 +4,8 @@ A production-ready, strictly typed implementation of **Hexagonal Architecture** 
 
 This project focuses on type safety, separation of concerns, and long-term maintainability, moving away from tightly coupled dependencies towards a robust domain-centric core.
 
+## 
+
 ## Technology ##
 
 <p align="left">
@@ -32,3 +34,4 @@ This project focuses on type safety, separation of concerns, and long-term maint
 |---------------|-----------------------------------|--------------|
 |API Design & Architecture | RESTful API design<br> Domain Driven Design, Hexagonal architecture <br> Open API 2.0 specifications<br> Task Queue (Asynq)   |✅<br> ✅<br> ✅ <br> 🔄 |
 |Database       | PostgreSQL <br> Raw SQL quries for performance <br> SQL version control and schema Migrations <br> Base ERROR maping <br> Optimized indexing | ✅ <br> ✅ <br> ✅ <br> ✅<br> ✅|
+|Security       | Parameterized sql queries to prevent SQL injection <br> DTO for controlled client data<br> User input and query param validation<br> JWT-ES256 ECDSA asymmetric key pairs| ✅<br> ✅<br> ✅<br> 🔄  |
