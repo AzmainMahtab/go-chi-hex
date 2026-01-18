@@ -3,7 +3,7 @@
 package domain
 
 type AuithLogin struct {
-	UserName string
+	Email    string
 	Password string
 }
 

@@ -90,6 +90,26 @@ func (s *service) GetUser(ctx context.Context, id int) (*domain.User, error) {
 	return u, nil
 }
 
+func (s *service) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+	u, err := s.repo.ReadByEmail(ctx, email)
+	if err != nil {
+		if u == nil {
+			return nil, &domain.AppError{
+				Code:    domain.CodeValidation,
+				Message: "User not found",
+				Err:     err,
+			}
+		}
+		return nil, &domain.AppError{
+			Code:    domain.CodeValidation,
+			Message: "Something went wrong",
+			Err:     err,
+		}
+
+	}
+	return u, nil
+}
+
 func (s *service) UpdateUser(ctx context.Context, updates domain.UserUpdate) (*domain.User, error) {
 	// Check if user exists first (Optional, but good for business logic)
 	_, err := s.repo.ReadOne(ctx, updates.ID)
@@ -137,7 +157,7 @@ func (s *service) RemoveUser(ctx context.Context, id int) error {
 }
 
 func (s *service) RestoreUser(ctx context.Context, id int) (*domain.User, error) {
-	_, err := s.repo.ReadOneDeleted(ctx, id)
+	_, err := s.repo.ReadOne(ctx, id)
 	if err != nil {
 		return nil, &domain.AppError{
 			Code:    domain.CodeNotFound,

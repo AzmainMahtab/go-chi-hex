@@ -18,6 +18,9 @@ type UserRepository interface {
 	// ReadOne reads a single active user
 	ReadOne(ctx context.Context, id int) (*domain.User, error)
 
+	// ReadByEmail reads a user by email
+	ReadByEmail(ctx context.Context, email string) (*domain.User, error)
+
 	// Update provided fields and update pertially
 	Update(ctx context.Context, updates domain.UserUpdate) error
 
@@ -48,6 +51,9 @@ type UserService interface {
 
 	// GetUser retrieves a single active user by their unique ID.
 	GetUser(ctx context.Context, id int) (*domain.User, error)
+
+	//GetUserUserByEmail retrieves user with email
+	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 
 	// UpdateUser performs a partial update on a user's information.
 	UpdateUser(ctx context.Context, updates domain.UserUpdate) (*domain.User, error)

@@ -23,8 +23,8 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 // Create() creates a user entity
 func (r *UserRepo) Create(ctx context.Context, u *domain.User) error {
 	query := `
-		INSERT INTO "user" (user_name, email, phone, password)
-		VALUES (:user_name, :email, :phone, :password)
+		INSERT INTO "user" (user_name, email,user_role, phone, password)
+	VALUES (:user_name, :email, :user_role, :phone, :password)
 		RETURNING id, user_status, created_at, updated_at`
 
 	// NamedQueryContext maps :user_name to u.UserName via tags
@@ -48,11 +48,20 @@ func (r *UserRepo) ReadOne(ctx context.Context, id int) (*domain.User, error) {
 
 	err := r.db.GetContext(ctx, u, query, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, MapError(err) // Or a specific domain error
-		}
 		return nil, MapError(err)
 	}
+	return u, nil
+}
+
+func (r *UserRepo) ReadByEmail(ctx context.Context, email string) (*domain.User, error) {
+	u := &domain.User{}
+	query := `SELECT * FROM "user" WHERE email = $1 AND deleted_at IS NULL`
+
+	err := r.db.GetContext(ctx, u, query, email)
+	if err != nil {
+		return nil, MapError(err)
+	}
+
 	return u, nil
 }
 
