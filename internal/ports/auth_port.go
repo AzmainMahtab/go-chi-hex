@@ -14,5 +14,5 @@ type TokenProvider interface {
 }
 
 type AuthService interface {
-	Login(ctx context.Context, login domain.AuithLogin) (domain.Tokenpair, error)
+	Login(ctx context.Context, login domain.AuthLogin) (domain.Tokenpair, error)
 }

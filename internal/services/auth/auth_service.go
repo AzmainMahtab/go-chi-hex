@@ -22,7 +22,7 @@ func NewAuthService(ur ports.UserRepository, tp ports.TokenProvider) ports.AuthS
 	}
 }
 
-func (a *authService) Login(ctx context.Context, login domain.AuithLogin) (domain.Tokenpair, error) {
+func (a *authService) Login(ctx context.Context, login domain.AuthLogin) (domain.Tokenpair, error) {
 	u, err := a.repo.ReadByEmail(ctx, login.Email)
 	if err != nil {
 		return domain.Tokenpair{}, &domain.AppError{

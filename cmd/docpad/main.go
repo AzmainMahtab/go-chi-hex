@@ -26,6 +26,8 @@ import (
 	routes "github.com/AzmainMahtab/go-chi-hex/api/http/router"
 	"github.com/AzmainMahtab/go-chi-hex/internal/config"
 	"github.com/AzmainMahtab/go-chi-hex/internal/infrastructure/postgres"
+	"github.com/AzmainMahtab/go-chi-hex/internal/secure"
+	"github.com/AzmainMahtab/go-chi-hex/internal/services/auth"
 	"github.com/AzmainMahtab/go-chi-hex/internal/services/users"
 )
 
@@ -53,19 +55,39 @@ func main() {
 	}
 	defer db.Close() // Ensure the connection is closed on exit
 
+	//JWT SETUP
+	privKey, err := secure.LoadPrivateKey(cfg.JWT.PrivateKeypath)
+	pubKey, err := secure.LoadPublicKey(cfg.JWT.PublicKeyPath)
+
+	if err != nil {
+		log.Fatalf("Security setup failed: %v", err)
+	}
+
+	// jwtConfig := secure.JWTAdapter{
+	// 	PrivateKey: privKey,
+	// 	PublicKey:  pubKey,
+	// 	AccessTTL:  cfg.JWT.AccessTTL,
+	// 	RefreshTTL: cfg.JWT.RefreshTTL,
+	// 	Issuer:     cfg.JWT.Issuer,
+	// }
+
+	jwtAdapter := secure.NewJWT(privKey, pubKey, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL, cfg.JWT.Issuer)
+
 	// REPOSITORY SETUP
 	userRepo := postgres.NewUserRepo(db)
 
 	// SERVICE SETUP
 	userService := users.NewUserService(userRepo)
-
+	authService := auth.NewAuthService(userRepo, jwtAdapter)
 	// HANDLER AND ROUTER SETUP
 	healthHandler := handlers.NewHealthHandleer()
 	userHandler := handlers.NewUserHandler(userService)
+	authHandler := handlers.NewAuthHandler(authService)
 
 	deps := routes.RouterDependencies{
 		HealthH: healthHandler,
 		UserH:   userHandler,
+		AuthH:   authHandler,
 	}
 	router := routes.NewRouter(deps)
 

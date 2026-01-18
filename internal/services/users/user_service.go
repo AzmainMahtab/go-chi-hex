@@ -47,7 +47,9 @@ func (s *service) RegisterUser(ctx context.Context, req domain.User) (*domain.Us
 			Err:     err,
 		}
 	}
+
 	req.Password = hashedPass
+	req.UserRole = "user"
 
 	if err := s.repo.Create(ctx, &req); err != nil {
 		log.Printf("Service: Create user error: %v", err)

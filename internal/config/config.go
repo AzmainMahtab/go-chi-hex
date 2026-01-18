@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -23,9 +24,18 @@ type DatabaseConfig struct {
 	PoolSize int
 }
 
+type JWTConfig struct {
+	PrivateKeypath string
+	PublicKeyPath  string
+	AccessTTL      time.Duration
+	RefreshTTL     time.Duration
+	Issuer         string
+}
+
 type Config struct {
 	Server ServerConfig
 	DB     DatabaseConfig
+	JWT    JWTConfig
 }
 
 func getEnv(key, defaultValue string) string {
@@ -52,6 +62,12 @@ func LoadConfig() (*Config, error) {
 			DBName:   getEnv("DB_NAME", "docpad_db"),
 			Password: os.Getenv("DB_PASSWORD"),
 		},
+
+		JWT: JWTConfig{
+			PrivateKeypath: getEnv("AUTH_PRIVATE_KEY_PATH", "./certs/private.pem"),
+			PublicKeyPath:  getEnv("AUTH_PUBLIC_KEY_PATH", "./certs/public.pem"),
+			Issuer:         getEnv("AUTH_ISSUER", "appName-api"),
+		},
 	}
 	// Validate required configuration (Password is critical)
 	if cfg.DB.Password == "" {
@@ -65,6 +81,19 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("invalid DB_POOL_SIZE value: %w", err)
 	}
 	cfg.DB.PoolSize = poolSize
+
+	// Hnadle TTL for access and RefreshTTL
+	accessTTL, err := time.ParseDuration(getEnv("AUTH_ACCESS_TTL", "15m"))
+	if err != nil {
+		return nil, fmt.Errorf("invalid AUTH_ACCESS_TTL: %w", err)
+	}
+	cfg.JWT.AccessTTL = accessTTL
+
+	refreshTTL, err := time.ParseDuration(getEnv("AUTH_REFRESH_TTL", "168h")) // Default 7 days
+	if err != nil {
+		return nil, fmt.Errorf("invalid AUTH_REFRESH_TTL: %w", err)
+	}
+	cfg.JWT.RefreshTTL = refreshTTL
 
 	return cfg, nil
 }

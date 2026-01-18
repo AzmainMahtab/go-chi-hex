@@ -12,6 +12,9 @@ const (
 	CodeConflict   ErrorCode = "CONFLICT"
 	CodeInternal   ErrorCode = "INTERNAL"
 	CodeValidation ErrorCode = "VALIDATION"
+
+	//Token
+	CodeInvalidToken ErrorCode = "INVALID_TOKEN"
 )
 
 type ErrorItem struct {
