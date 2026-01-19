@@ -20,6 +20,18 @@ func NewAuthHandler(svc ports.AuthService) *AuthHandler {
 	return &AuthHandler{svc: svc}
 }
 
+// Login handles user authentication and returns a JWT token.
+// @Summary      User Login
+// @Description  Authenticate user with email and password to receive a JWT token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.AuthRequest  true  "Login Credentials"
+// @Success      200      {object}  map[string]interface{} "Login success"
+// @Failure      400      {object}  map[string]interface{} "Bad request or invalid data"
+// @Failure      401      {object}  map[string]interface{} "Unauthorized"
+// @Failure      500      {object}  map[string]interface{} "Internal server error"
+// @Router       /auth/login [post]
 func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req dto.AuthRequest
 

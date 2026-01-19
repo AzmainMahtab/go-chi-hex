@@ -1,5 +1,16 @@
 basePath: /api/v1
 definitions:
+  dto.AuthRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
   dto.RegisterUserRequest:
     properties:
       email:
@@ -62,6 +73,44 @@ info:
   title: DocPad Hospital Management API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with email and password to receive a JWT token
+      parameters:
+      - description: Login Credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login success
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request or invalid data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: User Login
+      tags:
+      - auth
   /health:
     get:
       consumes:

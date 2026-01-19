@@ -89,7 +89,7 @@ func main() {
 		UserH:   userHandler,
 		AuthH:   authHandler,
 	}
-	router := routes.NewRouter(deps)
+	router := routes.NewRouter(deps, jwtAdapter)
 
 	// SERVER SETUP
 	server := &http.Server{

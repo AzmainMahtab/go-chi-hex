@@ -7,6 +7,7 @@ import (
 
 	"github.com/AzmainMahtab/go-chi-hex/api/http/handlers"
 	_ "github.com/AzmainMahtab/go-chi-hex/docs"
+	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -18,7 +19,7 @@ type RouterDependencies struct {
 	AuthH   *handlers.AuthHandler
 }
 
-func NewRouter(deps RouterDependencies) http.Handler {
+func NewRouter(deps RouterDependencies, tokenProvider ports.TokenProvider) http.Handler {
 	r := chi.NewRouter()
 
 	// chi middleware stack
@@ -29,7 +30,7 @@ func NewRouter(deps RouterDependencies) http.Handler {
 	// Main router group
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", deps.HealthH.HealthCheck)
-		r.Mount("/user", userRouter(deps.UserH))
+		r.Mount("/user", userRouter(deps.UserH, tokenProvider))
 		r.Mount("/auth", authRouter(deps.AuthH))
 	})
 
