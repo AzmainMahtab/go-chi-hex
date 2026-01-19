@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-playground/locales"
 	"github.com/joho/godotenv"
 )
 
@@ -24,6 +25,13 @@ type DatabaseConfig struct {
 	PoolSize int
 }
 
+type RedisConfig struct {
+	Host     string
+	Port     string
+	Password string
+	RedisDB  int
+}
+
 type JWTConfig struct {
 	PrivateKeypath string
 	PublicKeyPath  string
@@ -36,6 +44,7 @@ type Config struct {
 	Server ServerConfig
 	DB     DatabaseConfig
 	JWT    JWTConfig
+	Redis  RedisConfig
 }
 
 func getEnv(key, defaultValue string) string {
@@ -63,6 +72,12 @@ func LoadConfig() (*Config, error) {
 			Password: os.Getenv("DB_PASSWORD"),
 		},
 
+		Redis: RedisConfig{
+			Host:     getEnv("REDIS_HOST", "localhost"),
+			Port:     getEnv("REDIS_PORT", "6379"),
+			Password: getEnv("REDIS_PASSWORD", "hehePassRedis$t0nk"),
+		},
+
 		JWT: JWTConfig{
 			PrivateKeypath: getEnv("AUTH_PRIVATE_KEY_PATH", "./certs/private.pem"),
 			PublicKeyPath:  getEnv("AUTH_PUBLIC_KEY_PATH", "./certs/public.pem"),
@@ -81,6 +96,15 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("invalid DB_POOL_SIZE value: %w", err)
 	}
 	cfg.DB.PoolSize = poolSize
+
+	// REDIS DB ENV
+
+	redisDBStr := getEnv("REDIS_DB", "o")
+	redisDb, err := strconv.Atoi(redisDBStr)
+	if err != nil {
+		return nil, fmt.Errorf("Invaild redis DB value: %w", err)
+	}
+	cfg.Redis.RedisDB = redisDb
 
 	// Hnadle TTL for access and RefreshTTL
 	accessTTL, err := time.ParseDuration(getEnv("AUTH_ACCESS_TTL", "15m"))
