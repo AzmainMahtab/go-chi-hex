@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-playground/locales"
 	"github.com/joho/godotenv"
 )
 
