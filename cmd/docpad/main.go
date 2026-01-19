@@ -26,6 +26,7 @@ import (
 	routes "github.com/AzmainMahtab/go-chi-hex/api/http/router"
 	"github.com/AzmainMahtab/go-chi-hex/internal/config"
 	"github.com/AzmainMahtab/go-chi-hex/internal/infrastructure/postgres"
+	"github.com/AzmainMahtab/go-chi-hex/internal/infrastructure/redis"
 	"github.com/AzmainMahtab/go-chi-hex/internal/secure"
 	"github.com/AzmainMahtab/go-chi-hex/internal/services/auth"
 	"github.com/AzmainMahtab/go-chi-hex/internal/services/users"
@@ -55,6 +56,21 @@ func main() {
 	}
 	defer db.Close() // Ensure the connection is closed on exit
 
+	//Redis Setup and connect
+	redisConfig := redis.RedisConfig{
+		Host:     cfg.Redis.Host,
+		Port:     cfg.Redis.Port,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.RedisDB,
+	}
+
+	redis, err := redis.NewRedisClient(redisConfig)
+	if err != nil {
+		log.Fatalf("FATAL: Redis connection failed: %v", err)
+	}
+
+	defer redis.Close()
+
 	//JWT SETUP
 	privKey, err := secure.LoadPrivateKey(cfg.JWT.PrivateKeypath)
 	pubKey, err := secure.LoadPublicKey(cfg.JWT.PublicKeyPath)
@@ -62,14 +78,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Security setup failed: %v", err)
 	}
-
-	// jwtConfig := secure.JWTAdapter{
-	// 	PrivateKey: privKey,
-	// 	PublicKey:  pubKey,
-	// 	AccessTTL:  cfg.JWT.AccessTTL,
-	// 	RefreshTTL: cfg.JWT.RefreshTTL,
-	// 	Issuer:     cfg.JWT.Issuer,
-	// }
 
 	jwtAdapter := secure.NewJWT(privKey, pubKey, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL, cfg.JWT.Issuer)
 
