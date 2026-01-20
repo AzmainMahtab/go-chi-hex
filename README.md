@@ -16,7 +16,7 @@ With dependency inversion all the dependencies only flow inward. The domain laye
 
 <p align="left">
   <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=go,postgres,docker" />
+    <img src="https://skillicons.dev/icons?i=go,postgres,redis,docker" />
   </a>
 </p>
 
@@ -28,8 +28,10 @@ With dependency inversion all the dependencies only flow inward. The domain laye
 |Validator  |DTO Validation| [link](https://github.com/go-playground/validator)|
 |pgx        |Postgres Drover| [link](https://github.com/jackc/pgx)|
 |sqlx       |Data binding from DB to domain| [link](https://github.com/jmoiron/sqlx)|
+|go-redis   |Redis client library| [link](https://github.com/redis/go-redis)|
 |godotenv   |ENV management | [link](https://github.com/joho/godotenv)|
 |swaggo     |Swagger documentation| [link](https://github.com/swaggo/swag)|
+
 
 
 ## Progress ##
@@ -38,6 +40,6 @@ With dependency inversion all the dependencies only flow inward. The domain laye
 
 |Aread        |Features and Best Practices         |Status        |
 |---------------|-----------------------------------|--------------|
-|API Design & Architecture | RESTful API design<br> Domain Driven Design, Hexagonal architecture <br> Open API 2.0 specifications<br> Task Queue (Asynq)   |✅<br> ✅<br> ✅ <br> 🔄 |
+|API Design & Architecture | RESTful API design<br> Domain Driven Design, Hexagonal architecture <br> Open API 2.0 specifications<br> Task Queue with NATS |✅<br> ✅<br> ✅ <br> 🔄 |
 |Database       | PostgreSQL <br> Raw SQL quries for performance <br> SQL version control and schema Migrations <br> Base ERROR maping <br> Optimized indexing | ✅ <br> ✅ <br> ✅ <br> ✅<br> ✅|
-|Security       | Parameterized sql queries to prevent SQL injection <br> DTO for controlled client data<br> User input and query param validation<br> JWT-ES256 ECDSA asymmetric key pairs| ✅<br> ✅<br> ✅<br> ✅|
+|Security       | Parameterized sql queries to prevent SQL injection <br> DTO for controlled client data<br> User input and query param validation<br> JWT-ES256 ECDSA asymmetric key pairs <br> Token blacklist with Redis| ✅<br> ✅<br> ✅<br> ✅<br> 🔄 |
