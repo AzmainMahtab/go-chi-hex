@@ -8,10 +8,14 @@ import "fmt"
 type ErrorCode string
 
 const (
-	CodeNotFound   ErrorCode = "NOT_FOUND"
-	CodeConflict   ErrorCode = "CONFLICT"
-	CodeInternal   ErrorCode = "INTERNAL"
-	CodeValidation ErrorCode = "VALIDATION"
+	CodeNotFound    ErrorCode = "NOT_FOUND"
+	CodeConflict    ErrorCode = "CONFLICT"
+	CodeInternal    ErrorCode = "INTERNAL"
+	CodeValidation  ErrorCode = "VALIDATION"
+	CodeUauthorized ErrorCode = "UNAUTHORIZED"
+
+	//Token
+	CodeInvalidToken ErrorCode = "INVALID_TOKEN"
 )
 
 type ErrorItem struct {

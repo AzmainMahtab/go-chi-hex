@@ -26,6 +26,9 @@ import (
 	routes "github.com/AzmainMahtab/go-chi-hex/api/http/router"
 	"github.com/AzmainMahtab/go-chi-hex/internal/config"
 	"github.com/AzmainMahtab/go-chi-hex/internal/infrastructure/postgres"
+	"github.com/AzmainMahtab/go-chi-hex/internal/infrastructure/redis"
+	"github.com/AzmainMahtab/go-chi-hex/internal/secure"
+	"github.com/AzmainMahtab/go-chi-hex/internal/services/auth"
 	"github.com/AzmainMahtab/go-chi-hex/internal/services/users"
 )
 
@@ -53,21 +56,49 @@ func main() {
 	}
 	defer db.Close() // Ensure the connection is closed on exit
 
+	//Redis Setup and connect
+	redisConfig := redis.RedisConfig{
+		Host:     cfg.Redis.Host,
+		Port:     cfg.Redis.Port,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.RedisDB,
+	}
+
+	redisClient, err := redis.NewRedisClient(redisConfig)
+	if err != nil {
+		log.Fatalf("FATAL: Redis connection failed: %v", err)
+	}
+
+	defer redisClient.Close()
+
+	//JWT SETUP
+	privKey, err := secure.LoadPrivateKey(cfg.JWT.PrivateKeypath)
+	pubKey, err := secure.LoadPublicKey(cfg.JWT.PublicKeyPath)
+
+	if err != nil {
+		log.Fatalf("Security setup failed: %v", err)
+	}
+
+	jwtAdapter := secure.NewJWT(privKey, pubKey, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL, cfg.JWT.Issuer)
+
 	// REPOSITORY SETUP
 	userRepo := postgres.NewUserRepo(db)
+	redisRepo := redis.NewRedisAdapter(redisClient)
 
 	// SERVICE SETUP
 	userService := users.NewUserService(userRepo)
-
+	authService := auth.NewAuthService(userRepo, jwtAdapter, redisRepo)
 	// HANDLER AND ROUTER SETUP
 	healthHandler := handlers.NewHealthHandleer()
 	userHandler := handlers.NewUserHandler(userService)
+	authHandler := handlers.NewAuthHandler(authService)
 
 	deps := routes.RouterDependencies{
 		HealthH: healthHandler,
 		UserH:   userHandler,
+		AuthH:   authHandler,
 	}
-	router := routes.NewRouter(deps)
+	router := routes.NewRouter(deps, jwtAdapter)
 
 	// SERVER SETUP
 	server := &http.Server{

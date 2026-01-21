@@ -47,7 +47,9 @@ func (s *service) RegisterUser(ctx context.Context, req domain.User) (*domain.Us
 			Err:     err,
 		}
 	}
+
 	req.Password = hashedPass
+	req.UserRole = "user"
 
 	if err := s.repo.Create(ctx, &req); err != nil {
 		log.Printf("Service: Create user error: %v", err)
@@ -86,6 +88,26 @@ func (s *service) GetUser(ctx context.Context, id int) (*domain.User, error) {
 			Message: "Something went wrong in user fetching",
 			Err:     err,
 		}
+	}
+	return u, nil
+}
+
+func (s *service) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+	u, err := s.repo.ReadByEmail(ctx, email)
+	if err != nil {
+		if u == nil {
+			return nil, &domain.AppError{
+				Code:    domain.CodeValidation,
+				Message: "User not found",
+				Err:     err,
+			}
+		}
+		return nil, &domain.AppError{
+			Code:    domain.CodeValidation,
+			Message: "Something went wrong",
+			Err:     err,
+		}
+
 	}
 	return u, nil
 }
@@ -137,7 +159,7 @@ func (s *service) RemoveUser(ctx context.Context, id int) error {
 }
 
 func (s *service) RestoreUser(ctx context.Context, id int) (*domain.User, error) {
-	_, err := s.repo.ReadOneDeleted(ctx, id)
+	_, err := s.repo.ReadOne(ctx, id)
 	if err != nil {
 		return nil, &domain.AppError{
 			Code:    domain.CodeNotFound,

@@ -24,6 +24,10 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_PORT=${DB_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=${REDIS_DB}
       
     networks:
       - docpad-network
@@ -52,6 +56,17 @@ services:
       
     networks:
       - docpad-network
+  redis:
+    image: redis:7-alpine
+    container_name: hex_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+    networks:
+      - docpad-network
 
 networks:
   docpad-network:
@@ -60,3 +75,4 @@ networks:
 volumes:
   go-mod:
   postgres-data:
+  redis_data:

@@ -7,6 +7,7 @@ import (
 
 	"github.com/AzmainMahtab/go-chi-hex/api/http/handlers"
 	_ "github.com/AzmainMahtab/go-chi-hex/docs"
+	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -15,9 +16,10 @@ import (
 type RouterDependencies struct {
 	HealthH *handlers.HealthHandler
 	UserH   *handlers.UserHandler
+	AuthH   *handlers.AuthHandler
 }
 
-func NewRouter(deps RouterDependencies) http.Handler {
+func NewRouter(deps RouterDependencies, tokenProvider ports.TokenProvider) http.Handler {
 	r := chi.NewRouter()
 
 	// chi middleware stack
@@ -28,7 +30,8 @@ func NewRouter(deps RouterDependencies) http.Handler {
 	// Main router group
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", deps.HealthH.HealthCheck)
-		r.Mount("/user", userRouter(deps.UserH))
+		r.Mount("/user", userRouter(deps.UserH, tokenProvider))
+		r.Mount("/auth", authRouter(deps.AuthH, tokenProvider))
 	})
 
 	// --- Static Handler for /docs/* ---
@@ -41,28 +44,6 @@ func NewRouter(deps RouterDependencies) http.Handler {
 		httpSwagger.DeepLinking(true),
 		httpSwagger.DocExpansion("none"),
 	))
-
-	return r
-}
-
-func userRouter(uh *handlers.UserHandler) http.Handler {
-	r := chi.NewRouter()
-
-	// General User Routes
-	r.Post("/", uh.Register) // POST /user
-	r.Get("/", uh.List)      // GET /user
-
-	// Special route for trashed users
-	r.Get("/trash", uh.GetTrashed) // GET /user/trash
-
-	// Specific User ID Routes
-	r.Route("/{id}", func(r chi.Router) {
-		r.Get("/", uh.GetByID)          // GET /user/{id}
-		r.Patch("/", uh.Update)         // PATCH /user/{id}
-		r.Delete("/", uh.Remove)        // DELETE /user/{id} (Soft Delete)
-		r.Patch("/restore", uh.Restore) // PATCH /user/{id}/restore (restore user)
-		r.Delete("/prune", uh.Prune)    // DELETE /user/{id}/prune (Permanent)
-	})
 
 	return r
 }

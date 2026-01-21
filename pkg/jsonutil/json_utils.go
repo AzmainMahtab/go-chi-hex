@@ -171,3 +171,8 @@ func NotFoundResponse(w http.ResponseWriter, message string) {
 func ConflictResponse(w http.ResponseWriter, message string, errors []ErrorItem) {
 	ErrorResponse(w, http.StatusConflict, message, errors)
 }
+
+// UnauthorizedResponse() for unauthorized
+func UnauthorizedResponse(w http.ResponseWriter, message string) {
+	ErrorResponse(w, http.StatusUnauthorized, message, nil)
+}

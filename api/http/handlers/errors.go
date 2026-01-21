@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/AzmainMahtab/go-chi-hex/pkg/jsonutil"
-	"net/http"
 )
 
 func HandleError(w http.ResponseWriter, err error) {
@@ -26,9 +27,10 @@ func HandleError(w http.ResponseWriter, err error) {
 
 		case domain.CodeNotFound:
 			jsonutil.NotFoundResponse(w, appErr.Message)
-
 		case domain.CodeValidation:
 			jsonutil.BadRequestResponse(w, appErr.Message, nil)
+		case domain.CodeUauthorized:
+			jsonutil.UnauthorizedResponse(w, appErr.Message)
 
 		default:
 			jsonutil.ServerErrorResponse(w, appErr.Err)
