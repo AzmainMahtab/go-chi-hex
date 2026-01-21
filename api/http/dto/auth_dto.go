@@ -8,9 +8,9 @@ type AuthRequest struct {
 }
 
 type LogoutRequest struct {
-	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJFUzI1NiIsInR5c..."`
+	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJFUzI1NiIsInR5c..." validate:"required"`
 }
 
 type RotateRequest struct {
-	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJFUzI1NiIsInR5c..."`
+	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJFUzI1NiIsInR5c..." validate:"required"`
 }

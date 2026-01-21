@@ -7,6 +7,7 @@ import (
 
 	"github.com/AzmainMahtab/go-chi-hex/api/http/apiutil"
 	"github.com/AzmainMahtab/go-chi-hex/api/http/dto"
+	"github.com/AzmainMahtab/go-chi-hex/api/http/middleware"
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
 	"github.com/AzmainMahtab/go-chi-hex/pkg/jsonutil"
@@ -79,7 +80,7 @@ func (a *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, ok := r.Context().Value("user_claims").(domain.UserClaims)
+	claims, ok := r.Context().Value(middleware.UserContextKey).(domain.UserClaims)
 	if !ok {
 		jsonutil.UnauthorizedResponse(w, "Unauthorized: No claims found")
 		return

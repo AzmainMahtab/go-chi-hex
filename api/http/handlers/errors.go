@@ -27,7 +27,6 @@ func HandleError(w http.ResponseWriter, err error) {
 
 		case domain.CodeNotFound:
 			jsonutil.NotFoundResponse(w, appErr.Message)
-
 		case domain.CodeValidation:
 			jsonutil.BadRequestResponse(w, appErr.Message, nil)
 		case domain.CodeUauthorized:

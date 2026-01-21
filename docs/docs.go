@@ -467,6 +467,9 @@ const docTemplate = `{
         },
         "dto.LogoutRequest": {
             "type": "object",
+            "required": [
+                "refresh_token"
+            ],
             "properties": {
                 "refresh_token": {
                     "type": "string",
@@ -503,6 +506,9 @@ const docTemplate = `{
         },
         "dto.RotateRequest": {
             "type": "object",
+            "required": [
+                "refresh_token"
+            ],
             "properties": {
                 "refresh_token": {
                     "type": "string",

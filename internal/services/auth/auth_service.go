@@ -54,26 +54,55 @@ func (a *authService) Login(ctx context.Context, login domain.AuthLogin) (domain
 	return a.tokenProvider.GenerateTokenPair(u)
 }
 
-func (a *authService) Logout(ctx context.Context, refreshToken string, claims domain.UserClaims) error {
-	// Checking if it's a valid token
-	claims, err := a.tokenProvider.VerifyToken(refreshToken)
+func (a *authService) Logout(ctx context.Context, refreshToken string, accessClaims domain.UserClaims) error {
+
+	exists, err := a.cache.Exists(ctx, "blacklist:refresh:"+refreshToken)
 	if err != nil {
-		return err
+		return &domain.AppError{
+			Code:    domain.CodeInternal,
+			Message: "Something happened",
+			Err:     err,
+		}
+	}
+	if exists {
+		return &domain.AppError{
+			Code:    domain.CodeUauthorized,
+			Message: "BAAAAD TOOOKKKEEEENN",
+			Err:     err,
+		}
+
 	}
 
-	// Getting experiation time from the claim
+	//  Verify the refresh token to get ITS specific expiration
+	refreshClaims, err := a.tokenProvider.VerifyToken(refreshToken)
+	if err != nil {
+		return &domain.AppError{
+			Code:    domain.CodeUauthorized,
+			Message: "BAAAAAD TOKEN",
+			Err:     err,
+		}
+	}
 
-	expTime := time.Unix(claims.Expires, 0)
+	// Make sure the person owning the Access Token is the one owning the Refresh Token
+	if accessClaims.UserID != refreshClaims.UserID {
+		return &domain.AppError{
+			Code:    domain.CodeUauthorized,
+			Message: "Bad token",
+			Err:     err,
+		}
+	}
+
+	//  Get expiration time from the REFRESH claims
+	expTime := time.Unix(refreshClaims.Expires, 0)
 	ttl := time.Until(expTime)
 
-	if ttl < 0 {
+	if ttl <= 0 {
 		return nil
 	}
 
-	// Seting the token in cache to blacklist
+	//  Blacklist the token string
 	return a.cache.Set(ctx, "blacklist:refresh:"+refreshToken, "revoked", ttl)
 }
-
 func (a *authService) Rotate(ctx context.Context, refreshToken string) (domain.Tokenpair, error) {
 	// Checking if token already exist
 	blackList, err := a.cache.Exists(ctx, "blacklist:refresh:"+refreshToken)
@@ -87,7 +116,7 @@ func (a *authService) Rotate(ctx context.Context, refreshToken string) (domain.T
 
 	if blackList {
 		return domain.Tokenpair{}, &domain.AppError{
-			Code:    domain.CodeInvalidToken,
+			Code:    domain.CodeUauthorized,
 			Message: "Bad token",
 			Err:     err,
 		}

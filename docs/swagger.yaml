@@ -25,6 +25,8 @@ definitions:
       refresh_token:
         example: eyJhbGciOiJFUzI1NiIsInR5c...
         type: string
+    required:
+    - refresh_token
     type: object
   dto.RegisterUserRequest:
     properties:
@@ -51,6 +53,8 @@ definitions:
       refresh_token:
         example: eyJhbGciOiJFUzI1NiIsInR5c...
         type: string
+    required:
+    - refresh_token
     type: object
   dto.UpdateUserRequest:
     properties:
