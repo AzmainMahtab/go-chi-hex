@@ -1,15 +1,30 @@
 basePath: /api/v1
 definitions:
+  domain.Tokenpair:
+    properties:
+      accessToken:
+        type: string
+      refreshToke:
+        type: string
+    type: object
   dto.AuthRequest:
     properties:
       email:
+        example: hehe@gmail.com
         type: string
       password:
+        example: hehe1234
         minLength: 8
         type: string
     required:
     - email
     - password
+    type: object
+  dto.LogoutRequest:
+    properties:
+      refresh_token:
+        example: eyJhbGciOiJFUzI1NiIsInR5c...
+        type: string
     type: object
   dto.RegisterUserRequest:
     properties:
@@ -30,6 +45,12 @@ definitions:
     - password
     - phone
     - user_name
+    type: object
+  dto.RotateRequest:
+    properties:
+      refresh_token:
+        example: eyJhbGciOiJFUzI1NiIsInR5c...
+        type: string
     type: object
   dto.UpdateUserRequest:
     properties:
@@ -62,6 +83,41 @@ definitions:
         type: string
       user_status:
         type: string
+    type: object
+  jsonutil.ErrorItem:
+    properties:
+      code:
+        description: e.g., "INVALID_EMAIL"
+        type: string
+      field:
+        description: e.g., "email"
+        type: string
+      message:
+        description: User-friendly description
+        type: string
+    type: object
+  jsonutil.Response:
+    properties:
+      data:
+        description: Primary response data
+      errors:
+        description: Error details
+        items:
+          $ref: '#/definitions/jsonutil.ErrorItem'
+        type: array
+      message:
+        description: Human-readable message
+        type: string
+      meta:
+        description: Pagination, etc.
+      status:
+        description: '"success", "fail", or "error"'
+        type: string
+      statusCode:
+        description: HTTP status code
+        type: integer
+      success:
+        type: boolean
     type: object
 host: localhost:8080
 info:
@@ -109,6 +165,61 @@ paths:
             additionalProperties: true
             type: object
       summary: User Login
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Blacklists the provided refresh token to end the session
+      parameters:
+      - description: Refresh Token to revoke
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LogoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout success
+          schema:
+            $ref: '#/definitions/jsonutil.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/jsonutil.Response'
+      security:
+      - BearerAuth: []
+      summary: Logout User
+      tags:
+      - auth
+  /auth/rotate:
+    post:
+      consumes:
+      - application/json
+      description: Generates a new access and refresh token pair using a valid refresh
+        token
+      parameters:
+      - description: Refresh Token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RotateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rotation success
+          schema:
+            $ref: '#/definitions/domain.Tokenpair'
+        "401":
+          description: Token revoked or invalid
+          schema:
+            $ref: '#/definitions/jsonutil.Response'
+      summary: Rotate Tokens
       tags:
       - auth
   /health:

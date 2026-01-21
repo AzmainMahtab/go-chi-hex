@@ -74,6 +74,91 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Blacklists the provided refresh token to end the session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logout User",
+                "parameters": [
+                    {
+                        "description": "Refresh Token to revoke",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LogoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Logout success",
+                        "schema": {
+                            "$ref": "#/definitions/jsonutil.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/jsonutil.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/rotate": {
+            "post": {
+                "description": "Generates a new access and refresh token pair using a valid refresh token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Rotate Tokens",
+                "parameters": [
+                    {
+                        "description": "Refresh Token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RotateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rotation success",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Tokenpair"
+                        }
+                    },
+                    "401": {
+                        "description": "Token revoked or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/jsonutil.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Provides a simple UP/DOWN status and service identification.",
@@ -351,6 +436,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.Tokenpair": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
+                "refreshToke": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.AuthRequest": {
             "type": "object",
             "required": [
@@ -359,11 +455,22 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "hehe@gmail.com"
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "example": "hehe1234"
+                }
+            }
+        },
+        "dto.LogoutRequest": {
+            "type": "object",
+            "properties": {
+                "refresh_token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJFUzI1NiIsInR5c..."
                 }
             }
         },
@@ -391,6 +498,15 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 32,
                     "minLength": 3
+                }
+            }
+        },
+        "dto.RotateRequest": {
+            "type": "object",
+            "properties": {
+                "refresh_token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJFUzI1NiIsInR5c..."
                 }
             }
         },
@@ -438,6 +554,56 @@ const docTemplate = `{
                 },
                 "user_status": {
                     "type": "string"
+                }
+            }
+        },
+        "jsonutil.ErrorItem": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "e.g., \"INVALID_EMAIL\"",
+                    "type": "string"
+                },
+                "field": {
+                    "description": "e.g., \"email\"",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "User-friendly description",
+                    "type": "string"
+                }
+            }
+        },
+        "jsonutil.Response": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Primary response data"
+                },
+                "errors": {
+                    "description": "Error details",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jsonutil.ErrorItem"
+                    }
+                },
+                "message": {
+                    "description": "Human-readable message",
+                    "type": "string"
+                },
+                "meta": {
+                    "description": "Pagination, etc."
+                },
+                "status": {
+                    "description": "\"success\", \"fail\", or \"error\"",
+                    "type": "string"
+                },
+                "statusCode": {
+                    "description": "HTTP status code",
+                    "type": "integer"
+                },
+                "success": {
+                    "type": "boolean"
                 }
             }
         }

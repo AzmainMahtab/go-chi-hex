@@ -15,4 +15,6 @@ type TokenProvider interface {
 
 type AuthService interface {
 	Login(ctx context.Context, login domain.AuthLogin) (domain.Tokenpair, error)
+	Logout(ctx context.Context, refreshToken string, claims domain.UserClaims) error
+	Rotate(ctx context.Context, refreshToken string) (domain.Tokenpair, error)
 }

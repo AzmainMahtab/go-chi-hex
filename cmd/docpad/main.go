@@ -64,12 +64,12 @@ func main() {
 		DB:       cfg.Redis.RedisDB,
 	}
 
-	redis, err := redis.NewRedisClient(redisConfig)
+	redisClient, err := redis.NewRedisClient(redisConfig)
 	if err != nil {
 		log.Fatalf("FATAL: Redis connection failed: %v", err)
 	}
 
-	defer redis.Close()
+	defer redisClient.Close()
 
 	//JWT SETUP
 	privKey, err := secure.LoadPrivateKey(cfg.JWT.PrivateKeypath)
@@ -83,10 +83,11 @@ func main() {
 
 	// REPOSITORY SETUP
 	userRepo := postgres.NewUserRepo(db)
+	redisRepo := redis.NewRedisAdapter(redisClient)
 
 	// SERVICE SETUP
 	userService := users.NewUserService(userRepo)
-	authService := auth.NewAuthService(userRepo, jwtAdapter)
+	authService := auth.NewAuthService(userRepo, jwtAdapter, redisRepo)
 	// HANDLER AND ROUTER SETUP
 	healthHandler := handlers.NewHealthHandleer()
 	userHandler := handlers.NewUserHandler(userService)

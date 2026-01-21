@@ -31,7 +31,7 @@ func NewRouter(deps RouterDependencies, tokenProvider ports.TokenProvider) http.
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", deps.HealthH.HealthCheck)
 		r.Mount("/user", userRouter(deps.UserH, tokenProvider))
-		r.Mount("/auth", authRouter(deps.AuthH))
+		r.Mount("/auth", authRouter(deps.AuthH, tokenProvider))
 	})
 
 	// --- Static Handler for /docs/* ---
