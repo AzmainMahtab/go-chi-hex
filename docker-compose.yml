@@ -30,7 +30,7 @@ services:
       - REDIS_DB=${REDIS_DB}
       
     networks:
-      - docpad-network
+      - go-hex-network
 
   postgres:
     image: postgres:17-alpine
@@ -55,7 +55,7 @@ services:
       start_period: 10s
       
     networks:
-      - docpad-network
+      - go-hex-network
   redis:
     image: redis:7-alpine
     container_name: hex_redis
@@ -66,13 +66,30 @@ services:
     restart: always
 
     networks:
-      - docpad-network
+      - go-hex-network
+  nats:
+    image: nats:2.10-alpine
+    container_name: nats-server
+    # -js: Enables JetStream
+    # -sd: Defines where the stream data is stored inside the container
+    # -m: Enables the monitoring port
+    command: ["-js", "-sd", "/data", "-m", "8222"]
+    ports:
+      - "4222:4222" # Standard NATS client port
+      - "8222:8222" # HTTP Monitoring/Management port
+    volumes:
+      - nats_storage:/data
+    restart: always
+
+    networks:
+      - go-hex-network
 
 networks:
-  docpad-network:
+  go-hex-network:
     driver: bridge 
 
 volumes:
   go-mod:
   postgres-data:
   redis_data:
+  nats_storage:
