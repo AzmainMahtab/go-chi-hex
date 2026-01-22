@@ -6,10 +6,12 @@ import (
 	"net/http"
 
 	"github.com/AzmainMahtab/go-chi-hex/api/http/handlers"
+	"github.com/AzmainMahtab/go-chi-hex/api/http/middleware"
+
 	_ "github.com/AzmainMahtab/go-chi-hex/docs"
 	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
@@ -23,9 +25,10 @@ func NewRouter(deps RouterDependencies, tokenProvider ports.TokenProvider) http.
 	r := chi.NewRouter()
 
 	// chi middleware stack
-	r.Use(middleware.Logger)
-	r.Use(middleware.RequestID)
-	r.Use(middleware.Recoverer)
+	// r.Use(middleware.Logger)
+	r.Use(chiMiddleware.RequestID)
+	r.Use(middleware.StructuredLogger)
+	r.Use(chiMiddleware.Recoverer)
 
 	// Main router group
 	r.Route("/api/v1", func(r chi.Router) {
