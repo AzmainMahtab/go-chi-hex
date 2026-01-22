@@ -40,7 +40,7 @@ With dependency inversion all the dependencies only flow inward. The domain laye
 
 |Aread        |Features and Best Practices         |Status        |
 |---------------|-----------------------------------|--------------|
-|API Design & Architecture | RESTful API design<br> Domain Driven Design, Hexagonal architecture <br> Open API 2.0 specifications<br> Task Queue with NATS <br> Event/audit table with NATS queue |✅<br> ✅<br> ✅ <br> 🔄 <br> 🔄 |
+|API Design & Architecture | RESTful API design<br> Domain Driven Design, Hexagonal architecture <br> Open API 2.0 specifications<br> Event Streaming with NATS (JetStream) <br> |✅<br> ✅<br> ✅ <br> 🔄 <br> 🔄 |
 |Database       | PostgreSQL <br> Raw SQL quries for performance <br> SQL version control and schema Migrations <br> Base ERROR maping <br> Optimized indexing <br> Redis of cacheing| ✅ <br> ✅ <br> ✅ <br> ✅<br> ✅<br> ✅|
 |Security       | Parameterized sql queries to prevent SQL injection <br> DTO for controlled client data<br> User input and query param validation<br> JWT-ES256 ECDSA asymmetric key pairs <br> Token blacklist with Redis <br> Multidevice session management| ✅<br> ✅<br> ✅<br> ✅<br> ✅<br> 🔄 |
-|Core Operations & Observability | Custom AppError interface for error handling <br> Centralized configuration management with godotenv <br> Structured logging with slog <br> Database error maping for nicer error <br> context timeout middleware <br>| ✅<br> ✅ <br> ✅ <br> ✅ <br> 🔄 |  
+|Core Operations & Observability | Custom AppError interface for error handling <br> Centralized configuration management with godotenv <br> Structured logging with slog <br> Database error maping for nicer error <br> context timeout middleware <br> Event/audit table with NATS event Streaming | ✅<br> ✅ <br> ✅ <br> ✅ <br> 🔄 <br> 🔄  |  
