@@ -64,6 +64,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Summary      List active users
 // @Tags         user
 // @Produce      json
+// @Security     BearerAuth
 // @Success      200  {array}  dto.UserResponse
 // @Router       /user [get]
 func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -93,6 +94,7 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 // @Summary      Get user by ID
 // @Tags         user
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id   path      int  true  "User ID"
 // @Success      200  {object}  dto.UserResponse
 // @Router       /user/{id} [get]
@@ -119,6 +121,7 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        id    path      int                      true  "User ID"
 // @Param        user  body      dto.UpdateUserRequest true  "Fields to update"
+// @Security     BearerAuth
 // @Success      200   {object}  dto.UserResponse
 // @Router       /user/{id} [patch]
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -162,6 +165,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 // @Summary      Soft delete user
 // @Tags         user
 // @Param        id   path      int  true  "User ID"
+// @Security     BearerAuth
 // @Success      204  "No Content"
 // @Router       /user/{id} [delete]
 func (h *UserHandler) Remove(w http.ResponseWriter, r *http.Request) {
@@ -184,6 +188,7 @@ func (h *UserHandler) Remove(w http.ResponseWriter, r *http.Request) {
 // @Description  Restore a user that has been soft deleted
 // @Tags         user
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id   path      int  true  "User ID"
 // @Success      200  {object}  dto.UserResponse
 // @Failure      400  {object}  string "Invalid ID"
@@ -214,6 +219,7 @@ func (h *UserHandler) Restore(w http.ResponseWriter, r *http.Request) {
 // @Description  Retrieves all users where deleted_at is not null
 // @Tags         user
 // @Produce      json
+// @Security     BearerAuth
 // @Success      200  {array}   dto.UserResponse
 // @Router       /user/trash [get]
 func (h *UserHandler) GetTrashed(w http.ResponseWriter, r *http.Request) {
@@ -225,7 +231,7 @@ func (h *UserHandler) GetTrashed(w http.ResponseWriter, r *http.Request) {
 		Offset:      ParseQueryInt(r, "offset", 0),
 	}
 
-	// 2. Call the dedicated Trash service method
+	//  Call the dedicated Trash service method
 	users, err := h.svc.GetTrashedUsers(r.Context(), filter)
 	if err != nil {
 		HandleError(w, err)
@@ -239,6 +245,7 @@ func (h *UserHandler) GetTrashed(w http.ResponseWriter, r *http.Request) {
 // @Summary      Permanently delete a user
 // @Description  Hard deletes a user record from the database. This action cannot be undone.
 // @Tags         user
+// @Security 		 BearerAuth
 // @Param        id   path      int  true  "User ID"
 // @Success      204  {string}  string "User permanently deleted"
 // @Failure      400  {object}  string "Invalid ID"
@@ -252,7 +259,6 @@ func (h *UserHandler) Prune(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.PermanentlyDeleteUser(r.Context(), id); err != nil {
-		log.Printf("Handler: Prune error for ID %d: %v", id, err)
 		HandleError(w, err)
 		return
 	}

@@ -29,7 +29,7 @@ type UserFilter struct {
 }
 
 type UserUpdate struct {
-	ID       int
+	ID       string
 	UserName *string
 	Email    *string
 	Phone    *string

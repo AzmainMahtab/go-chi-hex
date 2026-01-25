@@ -195,6 +195,11 @@ const docTemplate = `{
         },
         "/user": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -248,6 +253,11 @@ const docTemplate = `{
         },
         "/user/trash": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieves all users where deleted_at is not null",
                 "produces": [
                     "application/json"
@@ -271,6 +281,11 @@ const docTemplate = `{
         },
         "/user/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -297,6 +312,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "tags": [
                     "user"
                 ],
@@ -317,6 +337,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -357,6 +382,11 @@ const docTemplate = `{
         },
         "/user/{id}/prune": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Hard deletes a user record from the database. This action cannot be undone.",
                 "tags": [
                     "user"
@@ -395,6 +425,11 @@ const docTemplate = `{
         },
         "/user/{id}/restore": {
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Restore a user that has been soft deleted",
                 "produces": [
                     "application/json"

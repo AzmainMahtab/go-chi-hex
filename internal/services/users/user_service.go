@@ -82,7 +82,7 @@ func (s *service) ListUsers(ctx context.Context, filters domain.UserFilter) ([]*
 	return users, nil
 }
 
-func (s *service) GetUser(ctx context.Context, id int) (*domain.User, error) {
+func (s *service) GetUser(ctx context.Context, id string) (*domain.User, error) {
 	u, err := s.repo.ReadOne(ctx, id)
 	if err != nil {
 		if u == nil {
@@ -145,7 +145,7 @@ func (s *service) UpdateUser(ctx context.Context, updates domain.UserUpdate) (*d
 	return s.repo.ReadOne(ctx, updates.ID)
 }
 
-func (s *service) RemoveUser(ctx context.Context, id int) error {
+func (s *service) RemoveUser(ctx context.Context, id string) error {
 	_, err := s.repo.ReadOne(ctx, id)
 	if err != nil {
 		return &domain.AppError{
@@ -167,7 +167,7 @@ func (s *service) RemoveUser(ctx context.Context, id int) error {
 
 }
 
-func (s *service) RestoreUser(ctx context.Context, id int) (*domain.User, error) {
+func (s *service) RestoreUser(ctx context.Context, id string) (*domain.User, error) {
 	_, err := s.repo.ReadOne(ctx, id)
 	if err != nil {
 		return nil, &domain.AppError{
@@ -204,7 +204,7 @@ func (s *service) GetTrashedUsers(ctx context.Context, filters domain.UserFilter
 	return usr, nil
 }
 
-func (s *service) PermanentlyDeleteUser(ctx context.Context, id int) error {
+func (s *service) PermanentlyDeleteUser(ctx context.Context, id string) error {
 	usr, err := s.repo.ReadOne(ctx, id)
 	if err != nil {
 		return &domain.AppError{
