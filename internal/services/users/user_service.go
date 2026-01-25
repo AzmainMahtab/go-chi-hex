@@ -9,15 +9,18 @@ import (
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type service struct {
-	repo ports.UserRepository
+	repo   ports.UserRepository
+	hasher ports.PasswordHasher
 }
 
-func NewUserService(repo ports.UserRepository) ports.UserService {
-	return &service{repo: repo}
+func NewUserService(repo ports.UserRepository, hasher ports.PasswordHasher) ports.UserService {
+	return &service{
+		repo:   repo,
+		hasher: hasher,
+	}
 }
 
 // RegisterUser takes a domain.User and registers a user
@@ -41,7 +44,7 @@ func (s *service) RegisterUser(ctx context.Context, req domain.User) (*domain.Us
 	}
 
 	// Hashing the Password
-	hashedPass, err := s.hashPassword(req.Password)
+	hashedPass, err := s.hasher.Hash(req.Password)
 	if err != nil {
 		return nil, &domain.AppError{
 			Code:    domain.CodeInternal,
@@ -229,11 +232,4 @@ func (s *service) PermanentlyDeleteUser(ctx context.Context, id int) error {
 	}
 
 	return nil
-}
-
-// --- PRIVATE HELPERS ---
-
-func (s *service) hashPassword(pass string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
-	return string(bytes), err
 }

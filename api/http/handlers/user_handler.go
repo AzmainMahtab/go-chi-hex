@@ -267,7 +267,7 @@ func (h *UserHandler) Prune(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) mapToResponse(u *domain.User) dto.UserResponse {
 	return dto.UserResponse{
-		ID:         u.ID,
+		ID:         u.UUID,
 		UserName:   u.UserName,
 		Email:      u.Email,
 		Phone:      u.Phone,

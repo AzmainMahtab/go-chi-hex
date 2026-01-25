@@ -25,7 +25,7 @@ func NewRouter(deps RouterDependencies, tokenProvider ports.TokenProvider) http.
 	r := chi.NewRouter()
 
 	// chi middleware stack
-	// r.Use(middleware.Logger)
+	// r.Use(chiMiddleware.Logger)
 	r.Use(chiMiddleware.RequestID)
 	r.Use(middleware.StructuredLogger)
 	r.Use(chiMiddleware.Recoverer)

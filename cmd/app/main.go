@@ -81,12 +81,19 @@ func main() {
 
 	jwtAdapter := secure.NewJWT(privKey, pubKey, cfg.JWT.AccessTTL, cfg.JWT.RefreshTTL, cfg.JWT.Issuer)
 
+	// Hasing setup
+	bcryptStrength := secure.BcryptHasher{
+		Cost: 5,
+	}
+
+	bcryptHasher := secure.NewBcryptHasher(bcryptStrength.Cost)
+
 	// REPOSITORY SETUP
 	userRepo := postgres.NewUserRepo(db)
 	redisRepo := redis.NewRedisAdapter(redisClient)
 
 	// SERVICE SETUP
-	userService := users.NewUserService(userRepo)
+	userService := users.NewUserService(userRepo, bcryptHasher)
 	authService := auth.NewAuthService(userRepo, jwtAdapter, redisRepo)
 	// HANDLER AND ROUTER SETUP
 	healthHandler := handlers.NewHealthHandleer()

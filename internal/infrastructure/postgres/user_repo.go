@@ -23,9 +23,10 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 // Create() creates a user entity
 func (r *UserRepo) Create(ctx context.Context, u *domain.User) error {
 	query := `
-		INSERT INTO "user" (user_name, email,user_role, phone, password)
-	VALUES (:user_name, :email, :user_role, :phone, :password)
-		RETURNING id, user_status, created_at, updated_at`
+		INSERT INTO "user" (uuid,user_name, email,user_role, phone, password)
+	VALUES (:uuid, :user_name, :email, :user_role, :phone, :password)
+		RETURNING id, user_status, created_at, updated_at
+	`
 
 	// NamedQueryContext maps :user_name to u.UserName via tags
 	rows, err := r.db.NamedQueryContext(ctx, query, u)

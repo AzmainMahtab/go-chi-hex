@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"regexp"
 
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
@@ -31,7 +32,23 @@ func MapError(err error) error {
 	//  Handle Postgres specific errors
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
+
+		slog.Error("Database execution failed",
+			"code", pgErr.Code,
+			"message", pgErr.Message,
+			"detail", pgErr.Detail,
+			"hint", pgErr.Hint,
+			"where", pgErr.Where,
+			"table", pgErr.TableName,
+		)
+
 		switch pgErr.Code {
+		case "42703": // undefined_column
+			return &domain.AppError{
+				Code:    domain.CodeInternal,
+				Message: fmt.Sprintf("schema mismatch: %s", pgErr.Message),
+				Err:     err,
+			}
 		case "23505": // unique_violation
 			return handleConflict(pgErr)
 		case "23503": // foreign_key_violation
