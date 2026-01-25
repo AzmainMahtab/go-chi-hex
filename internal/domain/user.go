@@ -6,6 +6,7 @@ import "time"
 
 type User struct {
 	ID         int        `db:"id"`
+	UUID       string     `db:"uuid"`
 	UserName   string     `db:"user_name"`
 	Email      string     `db:"email"`
 	Phone      string     `db:"phone"`

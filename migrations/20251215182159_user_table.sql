@@ -3,7 +3,8 @@
 CREATE TYPE user_status_choise AS ENUM ('active', 'inactive', 'suspended');
 CREATE TABLE IF NOT EXISTS "user"(
   id SERIAL PRIMARY KEY,
-  
+  uuid UUID UNIQUE NOT NULL,
+
   user_name VARCHAR(64) UNIQUE NOT NULL,
   email VARCHAR (128) UNIQUE NOT NULL,
   phone VARCHAR (20) UNIQUE NOT NULL,

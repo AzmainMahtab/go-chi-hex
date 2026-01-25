@@ -8,6 +8,7 @@ import (
 
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -39,6 +40,7 @@ func (s *service) RegisterUser(ctx context.Context, req domain.User) (*domain.Us
 		}
 	}
 
+	// Hashing the Password
 	hashedPass, err := s.hashPassword(req.Password)
 	if err != nil {
 		return nil, &domain.AppError{
@@ -48,8 +50,12 @@ func (s *service) RegisterUser(ctx context.Context, req domain.User) (*domain.Us
 		}
 	}
 
+	//Seting hashed password and generating UUID V7
 	req.Password = hashedPass
 	req.UserRole = "user"
+
+	newUUID, _ := uuid.NewV7()
+	req.UUID = newUUID.String()
 
 	if err := s.repo.Create(ctx, &req); err != nil {
 		log.Printf("Service: Create user error: %v", err)
