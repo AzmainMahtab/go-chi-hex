@@ -119,6 +119,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "User Data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegisterUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/rotate": {
             "post": {
                 "description": "Generates a new access and refresh token pair using a valid refresh token",
@@ -522,20 +555,24 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "hehe@hehemail.com"
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "example": "Very$tr0ngP@$$w0Rd"
                 },
                 "phone": {
                     "description": "e164 ensures international phone format",
-                    "type": "string"
+                    "type": "string",
+                    "example": "+8801700000000"
                 },
                 "user_name": {
                     "type": "string",
                     "maxLength": 32,
-                    "minLength": 3
+                    "minLength": 3,
+                    "example": "hehe"
                 }
             }
         },
@@ -555,10 +592,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "hehe@hehemail.com"
                 },
                 "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+8801700000000"
                 },
                 "status": {
                     "type": "string",
@@ -566,12 +605,14 @@ const docTemplate = `{
                         "active",
                         "inactive",
                         "suspended"
-                    ]
+                    ],
+                    "example": "active"
                 },
                 "user_name": {
                     "type": "string",
                     "maxLength": 32,
-                    "minLength": 3
+                    "minLength": 3,
+                    "example": "hehe"
                 }
             }
         },

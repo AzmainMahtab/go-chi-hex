@@ -15,6 +15,7 @@ func authRouter(ah *handlers.AuthHandler, tokenProvider ports.TokenProvider) htt
 	r := chi.NewRouter()
 
 	//  PUBLIC ROUTES No Middlewar
+	r.Post("/register", ah.Register)
 	r.Post("/login", ah.Login)
 	r.Post("/rotate", ah.Rotate)
 

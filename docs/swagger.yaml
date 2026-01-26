@@ -31,14 +31,18 @@ definitions:
   dto.RegisterUserRequest:
     properties:
       email:
+        example: hehe@hehemail.com
         type: string
       password:
+        example: Very$tr0ngP@$$w0Rd
         minLength: 8
         type: string
       phone:
         description: e164 ensures international phone format
+        example: "+8801700000000"
         type: string
       user_name:
+        example: hehe
         maxLength: 32
         minLength: 3
         type: string
@@ -59,16 +63,20 @@ definitions:
   dto.UpdateUserRequest:
     properties:
       email:
+        example: hehe@hehemail.com
         type: string
       phone:
+        example: "+8801700000000"
         type: string
       status:
         enum:
         - active
         - inactive
         - suspended
+        example: active
         type: string
       user_name:
+        example: hehe
         maxLength: 32
         minLength: 3
         type: string
@@ -197,6 +205,27 @@ paths:
       security:
       - BearerAuth: []
       summary: Logout User
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+      summary: Register a new user
       tags:
       - auth
   /auth/rotate:

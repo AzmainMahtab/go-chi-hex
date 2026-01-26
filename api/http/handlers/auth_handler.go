@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/AzmainMahtab/go-chi-hex/api/http/apiutil"
@@ -19,6 +20,45 @@ type AuthHandler struct {
 
 func NewAuthHandler(svc ports.AuthService) *AuthHandler {
 	return &AuthHandler{svc: svc}
+}
+
+// Register godoc
+// @Summary      Register a new user
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        user  body      dto.RegisterUserRequest  true  "User Data"
+// @Success      201   {object}  dto.UserResponse
+// @Router       /auth/register [post]
+func (a *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+	var req dto.RegisterUserRequest
+	if err := jsonutil.ReadJSON(w, r, &req); err != nil {
+		jsonutil.BadRequestResponse(w, "Bad Request", nil)
+		return
+	}
+
+	if errs := apiutil.ValidateStruct(req); errs != nil {
+		jsonutil.BadRequestResponse(w, "Invalid data", errs)
+		return
+	}
+
+	// Convert DTO to Domain for Service Input
+	userDomain := domain.User{
+		UserName: req.UserName,
+		Email:    req.Email,
+		Phone:    req.Phone,
+		Password: req.Password,
+	}
+
+	res, err := a.svc.Register(r.Context(), userDomain)
+	if err != nil {
+		HandleError(w, err)
+		log.Printf("SVC ERR: %v", err)
+		return
+	}
+
+	// Map Domain back to DTO for Response
+	jsonutil.WriteJSON(w, http.StatusCreated, a.mapToResponse(res), nil, "User registered successfully")
 }
 
 // Login handles user authentication and returns a JWT token.
@@ -119,4 +159,15 @@ func (a *AuthHandler) Rotate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonutil.WriteJSON(w, http.StatusOK, tokenPair, nil, "Tokens rotated successfully")
+}
+
+func (a *AuthHandler) mapToResponse(u *domain.User) dto.UserResponse {
+	return dto.UserResponse{
+		ID:         u.UUID,
+		UserName:   u.UserName,
+		Email:      u.Email,
+		Phone:      u.Phone,
+		UserStatus: u.UserStatus,
+		CreatedAt:  u.CreatedAt,
+	}
 }

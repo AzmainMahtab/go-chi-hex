@@ -29,7 +29,7 @@ func NewUserHandler(svc ports.UserService) *UserHandler {
 // @Param        user  body      dto.RegisterUserRequest  true  "User Data"
 // @Success      201   {object}  dto.UserResponse
 // @Router       /user [post]
-func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req dto.RegisterUserRequest
 	if err := jsonutil.ReadJSON(w, r, &req); err != nil {
 		jsonutil.BadRequestResponse(w, "Bad Request", nil)

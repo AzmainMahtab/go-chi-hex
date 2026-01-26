@@ -4,10 +4,12 @@ package auth
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,14 +17,60 @@ type authService struct {
 	repo          ports.UserRepository
 	tokenProvider ports.TokenProvider
 	cache         ports.CacheRepo
+	hasher        ports.PasswordHasher
 }
 
-func NewAuthService(ur ports.UserRepository, tp ports.TokenProvider, c ports.CacheRepo) ports.AuthService {
+func NewAuthService(ur ports.UserRepository, tp ports.TokenProvider, c ports.CacheRepo, h ports.PasswordHasher) ports.AuthService {
 	return &authService{
 		repo:          ur,
 		tokenProvider: tp,
 		cache:         c,
+		hasher:        h,
 	}
+}
+
+func (a *authService) Register(ctx context.Context, req domain.User) (*domain.User, error) {
+
+	conflict, err := a.repo.CheckConflict(ctx, req.UserName, req.Email, req.Phone)
+	if err != nil {
+		return nil, &domain.AppError{
+			Code:    domain.CodeInternal,
+			Message: "Database check failed",
+			Err:     err,
+		}
+	}
+
+	if len(conflict) > 0 {
+		return nil, &domain.AppError{
+			Code:    domain.CodeConflict,
+			Message: "User register failed: Conflicting values",
+			Errors:  conflict,
+		}
+	}
+
+	// Hashing the Password
+	hashedPass, err := a.hasher.Hash(req.Password)
+	if err != nil {
+		return nil, &domain.AppError{
+			Code:    domain.CodeInternal,
+			Message: "Password could not be hashedPass",
+			Err:     err,
+		}
+	}
+
+	//Seting hashed password and generating UUID V7
+	req.Password = hashedPass
+	req.UserRole = "user"
+
+	newUUID, _ := uuid.NewV7()
+	req.UUID = newUUID.String()
+
+	if err := a.repo.Create(ctx, &req); err != nil {
+		log.Printf("Service: Create user error: %v", err)
+		return nil, err
+	}
+
+	return &req, nil
 }
 
 func (a *authService) Login(ctx context.Context, login domain.AuthLogin) (domain.Tokenpair, error) {
