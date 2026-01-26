@@ -18,7 +18,7 @@ With dependency inversion all the dependencies only flow inward. The domain laye
   <a href="https://skillicons.dev">
     <img src="https://skillicons.dev/icons?i=go,postgres,redis,docker" >
   </a>
-  <img src="https://gist.githubusercontent.com/AzmainMahtab/c60aea72064ebf328883a99a2f5fe050/raw/97b549ba2b332faece33e1d1404caeb022f32ca7/nats.svg" width="50" height="50" style="vertical-align: middle; margin-left: 4px;">
+  <img src="https://gist.githubusercontent.com/AzmainMahtab/c60aea72064ebf328883a99a2f5fe050/raw/97b549ba2b332faece33e1d1404caeb022f32ca7/nats.svg" width="50" height="50" style="vertical-align: middle; margin-left: 6px;">
 </p>
 
 **Core Libraries**
