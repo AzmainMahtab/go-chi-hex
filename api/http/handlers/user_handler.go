@@ -140,6 +140,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	if errs := apiutil.ValidateStruct(req); errs != nil {
 		jsonutil.BadRequestResponse(w, "Invalid data", errs)
+		return
 	}
 
 	// Map DTO to Domain.UserUpdate (Strictly Typed)
