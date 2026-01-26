@@ -18,13 +18,14 @@ With dependency inversion all the dependencies only flow inward. The domain laye
   <a href="https://skillicons.dev">
     <img src="https://skillicons.dev/icons?i=go,postgres,redis,docker" >
   </a>
-  <svg width="48" height="48" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <svg width="48" height="48" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
     <rect width="128" height="128" rx="26" fill="#1d1d1f"/>
-    <g transform="matrix(0.7, 0, 0, 0.7, 19, 23)">
+    <g transform="translate(22, 28) scale(0.65)">
       <path fill="#34a574" d="M63.998 0h61.82v50.12h-61.82z"/><path fill="#27aae1" d="M2.182 0h61.816v50.12H2.182Z"/><path fill="#8dc63f" d="M63.998 50.164h61.82v50.113h-61.82z"/><path fill="#375c93" d="M2.182 50.164h61.816v50.113H2.182Z"/><path fill="#8dc63f" d="M54.914 100.004L85.16 128v-27.996z"/><path fill="#375c93" d="m63.998 100.004l.322 8.812l-9.685-9.042z"/><path fill="#fff" d="M89.608 64.802V23.315h14.779v53.651H81.993l-45.21-42.223v42.269H21.958V23.316h23.177l44.472 41.486z"/>
     </g>
   </svg>
 </p>
+
 **Core Libraries**
 
 | Libraries | Purpose | Repo |
