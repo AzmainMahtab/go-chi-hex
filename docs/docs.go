@@ -295,7 +295,7 @@ const docTemplate = `{
                 "summary": "Get user by ID",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -323,7 +323,7 @@ const docTemplate = `{
                 "summary": "Soft delete user",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -354,7 +354,7 @@ const docTemplate = `{
                 "summary": "Update user partially",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -394,7 +394,7 @@ const docTemplate = `{
                 "summary": "Permanently delete a user",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -440,7 +440,7 @@ const docTemplate = `{
                 "summary": "Restore a delete user",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",

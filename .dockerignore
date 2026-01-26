@@ -1,0 +1,40 @@
+# --- Version Control ---
+.git
+.gitignore
+.gitattributes
+
+# --- Local Go Binaries & Caches ---
+bin/
+obj/
+dist/
+# If you run builds locally, ignore the binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# --- Development Tools & Logs ---
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+tmp/
+*.log
+
+# --- Docker & Env ---
+# ignore these because they are mounted via volumes or 
+# passed via the environment section in compose
+Dockerfile
+docker-compose.yaml
+.env
+.env.*
+!.env.example
+
+# --- Documentation ---
+# If your swagger docs are massive, you can ignore them 
+# and regenerate them inside the container
+# docs/

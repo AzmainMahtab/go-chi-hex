@@ -291,7 +291,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       responses:
         "204":
           description: No Content
@@ -306,7 +306,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -327,7 +327,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       - description: Fields to update
         in: body
         name: user
@@ -355,7 +355,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       responses:
         "204":
           description: User permanently deleted
@@ -382,7 +382,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:

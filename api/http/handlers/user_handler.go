@@ -95,7 +95,7 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 // @Tags         user
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id   path      int  true  "User ID"
+// @Param        id   path      string  true  "User ID"
 // @Success      200  {object}  dto.UserResponse
 // @Router       /user/{id} [get]
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -119,7 +119,7 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        id    path      int                      true  "User ID"
+// @Param        id    path      string                      true  "User ID"
 // @Param        user  body      dto.UpdateUserRequest true  "Fields to update"
 // @Security     BearerAuth
 // @Success      200   {object}  dto.UserResponse
@@ -164,7 +164,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 // Remove godoc
 // @Summary      Soft delete user
 // @Tags         user
-// @Param        id   path      int  true  "User ID"
+// @Param        id   path      string  true  "User ID"
 // @Security     BearerAuth
 // @Success      204  "No Content"
 // @Router       /user/{id} [delete]
@@ -189,7 +189,7 @@ func (h *UserHandler) Remove(w http.ResponseWriter, r *http.Request) {
 // @Tags         user
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id   path      int  true  "User ID"
+// @Param        id   path      string  true  "User ID"
 // @Success      200  {object}  dto.UserResponse
 // @Failure      400  {object}  string "Invalid ID"
 // @Failure      500  {object}  string "Internal Server Error"
@@ -246,7 +246,7 @@ func (h *UserHandler) GetTrashed(w http.ResponseWriter, r *http.Request) {
 // @Description  Hard deletes a user record from the database. This action cannot be undone.
 // @Tags         user
 // @Security 		 BearerAuth
-// @Param        id   path      int  true  "User ID"
+// @Param        id   path      string  true  "User ID"
 // @Success      204  {string}  string "User permanently deleted"
 // @Failure      400  {object}  string "Invalid ID"
 // @Failure      500  {object}  string "Internal Server Error"
