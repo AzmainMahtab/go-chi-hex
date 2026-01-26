@@ -182,7 +182,7 @@ func (r *UserRepo) Trash(ctx context.Context, filter domain.UserFilter) ([]*doma
 	var users []*domain.User
 
 	//  Base Query - Note the IS NOT NULL constraint to keep the trash "secret"
-	query := `SELECT id, user_name, email, phone, user_status, created_at, updated_at, deleted_at 
+	query := `SELECT uuid, user_name, email, phone, user_status, created_at, updated_at, deleted_at 
               FROM "user" 
               WHERE deleted_at IS NOT NULL`
 

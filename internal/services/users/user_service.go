@@ -170,7 +170,7 @@ func (s *service) RemoveUser(ctx context.Context, id string) error {
 }
 
 func (s *service) RestoreUser(ctx context.Context, id string) (*domain.User, error) {
-	_, err := s.repo.ReadOne(ctx, id)
+	_, err := s.repo.ReadOneDeleted(ctx, id)
 	if err != nil {
 		return nil, &domain.AppError{
 			Code:    domain.CodeNotFound,
@@ -207,7 +207,7 @@ func (s *service) GetTrashedUsers(ctx context.Context, filters domain.UserFilter
 }
 
 func (s *service) PermanentlyDeleteUser(ctx context.Context, id string) error {
-	usr, err := s.repo.ReadOne(ctx, id)
+	usr, err := s.repo.ReadOneDeleted(ctx, id)
 	if err != nil {
 		return &domain.AppError{
 			Code:    domain.CodeNotFound,
