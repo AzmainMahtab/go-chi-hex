@@ -16,8 +16,9 @@ With dependency inversion all the dependencies only flow inward. The domain laye
 
 <p align="left">
   <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=go,postgres,redis,docker" />
+    <img src="https://skillicons.dev/icons?i=go,postgres,redis,docker" >
   </a>
+  <img src="https://gist.githubusercontent.com/AzmainMahtab/c60aea72064ebf328883a99a2f5fe050/raw/97b549ba2b332faece33e1d1404caeb022f32ca7/nats.svg" width="50" height="50" style="vertical-align: middle; margin-left: 6px;">
 </p>
 
 **Core Libraries**
@@ -43,4 +44,4 @@ With dependency inversion all the dependencies only flow inward. The domain laye
 |API Design & Architecture | RESTful API design<br> Domain Driven Design, Hexagonal architecture <br> Open API 2.0 specifications<br> Event Streaming with NATS (JetStream) <br> |✅<br> ✅<br> ✅ <br> 🔄  |
 |Database       | PostgreSQL <br> Raw SQL quries for performance <br> SQL version control and schema Migrations <br> Base ERROR maping <br> Optimized indexing <br> Redis of cacheing| ✅ <br> ✅ <br> ✅ <br> ✅<br> ✅<br> ✅|
 |Security       | Parameterized sql queries to prevent SQL injection <br> DTO for controlled client data<br> User input and query param validation<br> JWT-ES256 ECDSA asymmetric key pairs <br> Token blacklist with Redis <br> Multidevice session management| ✅<br> ✅<br> ✅<br> ✅<br> ✅<br> 🔄 |
-|Core Operations & Observability | Custom AppError interface for error handling <br> Centralized configuration management with godotenv <br> Structured logging with slog <br>  context timeout middleware <br> Event/audit table with NATS event Streaming | ✅<br> ✅ <br> ✅ <br> 🔄 <br> 🔄  |  
+|Core Operations & Observability | UUID V7 as public ID and serialized ID as internal <br> Custom AppError interface for error handling <br> Centralized configuration management with godotenv <br> Structured logging with slog <br>  context timeout middleware <br> Event/audit table with NATS event Streaming |✅ <br> ✅<br> ✅ <br> ✅ <br> 🔄 <br> 🔄  |  

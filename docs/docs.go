@@ -119,6 +119,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "User Data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegisterUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/rotate": {
             "post": {
                 "description": "Generates a new access and refresh token pair using a valid refresh token",
@@ -195,6 +228,11 @@ const docTemplate = `{
         },
         "/user": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -202,6 +240,50 @@ const docTemplate = `{
                     "user"
                 ],
                 "summary": "List active users",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by username",
+                        "name": "user_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by email",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by phone",
+                        "name": "phone",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status (e.g. active, inactive)",
+                        "name": "user_status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Show including deleted users (true/false)",
+                        "name": "show_deleted",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of records to return (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of records to skip (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -215,6 +297,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -248,6 +335,11 @@ const docTemplate = `{
         },
         "/user/trash": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieves all users where deleted_at is not null",
                 "produces": [
                     "application/json"
@@ -271,6 +363,11 @@ const docTemplate = `{
         },
         "/user/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -280,7 +377,7 @@ const docTemplate = `{
                 "summary": "Get user by ID",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -297,13 +394,18 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "tags": [
                     "user"
                 ],
                 "summary": "Soft delete user",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -317,6 +419,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -329,7 +436,7 @@ const docTemplate = `{
                 "summary": "Update user partially",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -357,6 +464,11 @@ const docTemplate = `{
         },
         "/user/{id}/prune": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Hard deletes a user record from the database. This action cannot be undone.",
                 "tags": [
                     "user"
@@ -364,7 +476,7 @@ const docTemplate = `{
                 "summary": "Permanently delete a user",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -395,6 +507,11 @@ const docTemplate = `{
         },
         "/user/{id}/restore": {
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Restore a user that has been soft deleted",
                 "produces": [
                     "application/json"
@@ -405,7 +522,7 @@ const docTemplate = `{
                 "summary": "Restore a delete user",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -487,20 +604,24 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "hehe@hehemail.com"
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "example": "Very$tr0ngP@$$w0Rd"
                 },
                 "phone": {
                     "description": "e164 ensures international phone format",
-                    "type": "string"
+                    "type": "string",
+                    "example": "+8801700000000"
                 },
                 "user_name": {
                     "type": "string",
                     "maxLength": 32,
-                    "minLength": 3
+                    "minLength": 3,
+                    "example": "hehe"
                 }
             }
         },
@@ -520,10 +641,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "hehe@hehemail.com"
                 },
                 "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+8801700000000"
                 },
                 "status": {
                     "type": "string",
@@ -531,12 +654,14 @@ const docTemplate = `{
                         "active",
                         "inactive",
                         "suspended"
-                    ]
+                    ],
+                    "example": "active"
                 },
                 "user_name": {
                     "type": "string",
                     "maxLength": 32,
-                    "minLength": 3
+                    "minLength": 3,
+                    "example": "hehe"
                 }
             }
         },
@@ -550,7 +675,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "phone": {
                     "type": "string"

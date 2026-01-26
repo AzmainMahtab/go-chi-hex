@@ -26,10 +26,11 @@ func NewUserHandler(svc ports.UserService) *UserHandler {
 // @Tags         user
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        user  body      dto.RegisterUserRequest  true  "User Data"
 // @Success      201   {object}  dto.UserResponse
 // @Router       /user [post]
-func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req dto.RegisterUserRequest
 	if err := jsonutil.ReadJSON(w, r, &req); err != nil {
 		jsonutil.BadRequestResponse(w, "Bad Request", nil)
@@ -64,6 +65,14 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Summary      List active users
 // @Tags         user
 // @Produce      json
+// @Param        user_name    query     string  false  "Filter by username"
+// @Param        email        query     string  false  "Filter by email"
+// @Param        phone        query     string  false  "Filter by phone"
+// @Param        user_status  query     string  false  "Filter by status (e.g. active, inactive)"
+// @Param        show_deleted query     bool    false  "Show including deleted users (true/false)"
+// @Param        limit        query     int     false  "Number of records to return (default 10)"
+// @Param        offset       query     int     false  "Number of records to skip (default 0)"
+// @Security     BearerAuth
 // @Success      200  {array}  dto.UserResponse
 // @Router       /user [get]
 func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -73,9 +82,9 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 		Email:       r.URL.Query().Get("email"),
 		Phone:       r.URL.Query().Get("phone"),
 		UserStatus:  r.URL.Query().Get("user_status"),
-		ShowDeleted: false,                         // Explicitly false for the active list
-		Limit:       ParseQueryInt(r, "limit", 10), // Default to 10
-		Offset:      ParseQueryInt(r, "offset", 0), // Default to 0
+		ShowDeleted: ParseQueryBool(r, "show_deleted", false), // Explicitly false for the active list
+		Limit:       ParseQueryInt(r, "limit", 10),            // Default to 10
+		Offset:      ParseQueryInt(r, "offset", 0),            // Default to 0
 	}
 
 	// Call Service
@@ -93,7 +102,8 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 // @Summary      Get user by ID
 // @Tags         user
 // @Produce      json
-// @Param        id   path      int  true  "User ID"
+// @Security     BearerAuth
+// @Param        id   path      string  true  "User ID"
 // @Success      200  {object}  dto.UserResponse
 // @Router       /user/{id} [get]
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -117,8 +127,9 @@ func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        id    path      int                      true  "User ID"
+// @Param        id    path      string                      true  "User ID"
 // @Param        user  body      dto.UpdateUserRequest true  "Fields to update"
+// @Security     BearerAuth
 // @Success      200   {object}  dto.UserResponse
 // @Router       /user/{id} [patch]
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -137,11 +148,12 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	if errs := apiutil.ValidateStruct(req); errs != nil {
 		jsonutil.BadRequestResponse(w, "Invalid data", errs)
+		return
 	}
 
 	// Map DTO to Domain.UserUpdate (Strictly Typed)
 	updateParams := domain.UserUpdate{
-		ID:       id,
+		UUID:     id,
 		UserName: req.UserName,
 		Email:    req.Email,
 		Phone:    req.Phone,
@@ -161,7 +173,8 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 // Remove godoc
 // @Summary      Soft delete user
 // @Tags         user
-// @Param        id   path      int  true  "User ID"
+// @Param        id   path      string  true  "User ID"
+// @Security     BearerAuth
 // @Success      204  "No Content"
 // @Router       /user/{id} [delete]
 func (h *UserHandler) Remove(w http.ResponseWriter, r *http.Request) {
@@ -184,7 +197,8 @@ func (h *UserHandler) Remove(w http.ResponseWriter, r *http.Request) {
 // @Description  Restore a user that has been soft deleted
 // @Tags         user
 // @Produce      json
-// @Param        id   path      int  true  "User ID"
+// @Security     BearerAuth
+// @Param        id   path      string  true  "User ID"
 // @Success      200  {object}  dto.UserResponse
 // @Failure      400  {object}  string "Invalid ID"
 // @Failure      500  {object}  string "Internal Server Error"
@@ -214,6 +228,7 @@ func (h *UserHandler) Restore(w http.ResponseWriter, r *http.Request) {
 // @Description  Retrieves all users where deleted_at is not null
 // @Tags         user
 // @Produce      json
+// @Security     BearerAuth
 // @Success      200  {array}   dto.UserResponse
 // @Router       /user/trash [get]
 func (h *UserHandler) GetTrashed(w http.ResponseWriter, r *http.Request) {
@@ -225,7 +240,7 @@ func (h *UserHandler) GetTrashed(w http.ResponseWriter, r *http.Request) {
 		Offset:      ParseQueryInt(r, "offset", 0),
 	}
 
-	// 2. Call the dedicated Trash service method
+	//  Call the dedicated Trash service method
 	users, err := h.svc.GetTrashedUsers(r.Context(), filter)
 	if err != nil {
 		HandleError(w, err)
@@ -239,7 +254,8 @@ func (h *UserHandler) GetTrashed(w http.ResponseWriter, r *http.Request) {
 // @Summary      Permanently delete a user
 // @Description  Hard deletes a user record from the database. This action cannot be undone.
 // @Tags         user
-// @Param        id   path      int  true  "User ID"
+// @Security 		 BearerAuth
+// @Param        id   path      string  true  "User ID"
 // @Success      204  {string}  string "User permanently deleted"
 // @Failure      400  {object}  string "Invalid ID"
 // @Failure      500  {object}  string "Internal Server Error"
@@ -252,7 +268,6 @@ func (h *UserHandler) Prune(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.PermanentlyDeleteUser(r.Context(), id); err != nil {
-		log.Printf("Handler: Prune error for ID %d: %v", id, err)
 		HandleError(w, err)
 		return
 	}
@@ -267,7 +282,7 @@ func (h *UserHandler) Prune(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) mapToResponse(u *domain.User) dto.UserResponse {
 	return dto.UserResponse{
-		ID:         u.ID,
+		ID:         u.UUID,
 		UserName:   u.UserName,
 		Email:      u.Email,
 		Phone:      u.Phone,

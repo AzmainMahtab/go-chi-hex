@@ -5,18 +5,23 @@ package users
 import (
 	"context"
 	"log"
+	"log/slog"
 
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/google/uuid"
 )
 
 type service struct {
-	repo ports.UserRepository
+	repo   ports.UserRepository
+	hasher ports.PasswordHasher
 }
 
-func NewUserService(repo ports.UserRepository) ports.UserService {
-	return &service{repo: repo}
+func NewUserService(repo ports.UserRepository, hasher ports.PasswordHasher) ports.UserService {
+	return &service{
+		repo:   repo,
+		hasher: hasher,
+	}
 }
 
 // RegisterUser takes a domain.User and registers a user
@@ -39,7 +44,8 @@ func (s *service) RegisterUser(ctx context.Context, req domain.User) (*domain.Us
 		}
 	}
 
-	hashedPass, err := s.hashPassword(req.Password)
+	// Hashing the Password
+	hashedPass, err := s.hasher.Hash(req.Password)
 	if err != nil {
 		return nil, &domain.AppError{
 			Code:    domain.CodeInternal,
@@ -48,8 +54,12 @@ func (s *service) RegisterUser(ctx context.Context, req domain.User) (*domain.Us
 		}
 	}
 
+	//Seting hashed password and generating UUID V7
 	req.Password = hashedPass
 	req.UserRole = "user"
+
+	newUUID, _ := uuid.NewV7()
+	req.UUID = newUUID.String()
 
 	if err := s.repo.Create(ctx, &req); err != nil {
 		log.Printf("Service: Create user error: %v", err)
@@ -73,7 +83,7 @@ func (s *service) ListUsers(ctx context.Context, filters domain.UserFilter) ([]*
 	return users, nil
 }
 
-func (s *service) GetUser(ctx context.Context, id int) (*domain.User, error) {
+func (s *service) GetUser(ctx context.Context, id string) (*domain.User, error) {
 	u, err := s.repo.ReadOne(ctx, id)
 	if err != nil {
 		if u == nil {
@@ -114,7 +124,7 @@ func (s *service) GetUserByEmail(ctx context.Context, email string) (*domain.Use
 
 func (s *service) UpdateUser(ctx context.Context, updates domain.UserUpdate) (*domain.User, error) {
 	// Check if user exists first (Optional, but good for business logic)
-	_, err := s.repo.ReadOne(ctx, updates.ID)
+	_, err := s.repo.ReadOne(ctx, updates.UUID)
 	if err != nil {
 		return nil, &domain.AppError{
 			Code:    domain.CodeNotFound,
@@ -125,6 +135,7 @@ func (s *service) UpdateUser(ctx context.Context, updates domain.UserUpdate) (*d
 
 	// Perform the partial update
 	if err := s.repo.Update(ctx, updates); err != nil {
+		slog.Error("Update err:", "err", err)
 		return nil, &domain.AppError{
 			Code:    domain.CodeInternal,
 			Message: "Action could not be performed",
@@ -133,10 +144,10 @@ func (s *service) UpdateUser(ctx context.Context, updates domain.UserUpdate) (*d
 	}
 
 	// Return the fresh user data
-	return s.repo.ReadOne(ctx, updates.ID)
+	return s.repo.ReadOne(ctx, updates.UUID)
 }
 
-func (s *service) RemoveUser(ctx context.Context, id int) error {
+func (s *service) RemoveUser(ctx context.Context, id string) error {
 	_, err := s.repo.ReadOne(ctx, id)
 	if err != nil {
 		return &domain.AppError{
@@ -158,8 +169,8 @@ func (s *service) RemoveUser(ctx context.Context, id int) error {
 
 }
 
-func (s *service) RestoreUser(ctx context.Context, id int) (*domain.User, error) {
-	_, err := s.repo.ReadOne(ctx, id)
+func (s *service) RestoreUser(ctx context.Context, id string) (*domain.User, error) {
+	_, err := s.repo.ReadOneDeleted(ctx, id)
 	if err != nil {
 		return nil, &domain.AppError{
 			Code:    domain.CodeNotFound,
@@ -195,8 +206,8 @@ func (s *service) GetTrashedUsers(ctx context.Context, filters domain.UserFilter
 	return usr, nil
 }
 
-func (s *service) PermanentlyDeleteUser(ctx context.Context, id int) error {
-	usr, err := s.repo.ReadOne(ctx, id)
+func (s *service) PermanentlyDeleteUser(ctx context.Context, id string) error {
+	usr, err := s.repo.ReadOneDeleted(ctx, id)
 	if err != nil {
 		return &domain.AppError{
 			Code:    domain.CodeNotFound,
@@ -223,11 +234,4 @@ func (s *service) PermanentlyDeleteUser(ctx context.Context, id int) error {
 	}
 
 	return nil
-}
-
-// --- PRIVATE HELPERS ---
-
-func (s *service) hashPassword(pass string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
-	return string(bytes), err
 }

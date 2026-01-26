@@ -6,22 +6,21 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/go-chi/chi/v5"
 )
 
 // ReadIDParam Read the id parameter from the userl
-func ReadIDParam(r *http.Request) (int, error) {
+func ReadIDParam(r *http.Request) (string, error) {
 	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
-
-	if err != nil || id < 1 {
-		return 0, &domain.AppError{
-			Code:    domain.CodeValidation,
-			Message: "invalid resource identifier",
-		}
-	}
-	return id, nil
+	// id, err := strconv.Atoi(idStr)
+	//
+	// if err != nil || id < 1 {
+	// 	return 0, &domain.AppError{
+	// 		Code:    domain.CodeValidation,
+	// 		Message: "invalid resource identifier",
+	// 	}
+	// }
+	return idStr, nil
 }
 
 // ParseQueryInt safely converts a URL query parameter to an integer with a default fallback
@@ -37,4 +36,17 @@ func ParseQueryInt(r *http.Request, key string, defaultValue int) int {
 	}
 
 	return val
+}
+
+func ParseQueryBool(r *http.Request, key string, defaultVal bool) bool {
+	val := r.URL.Query().Get(key)
+	if val == "" {
+		return defaultVal
+	}
+	// ParseBool handles "1", "t", "T", "true", "TRUE", "0", "f", "F", "false", "FALSE"
+	b, err := strconv.ParseBool(val)
+	if err != nil {
+		return defaultVal
+	}
+	return b
 }
