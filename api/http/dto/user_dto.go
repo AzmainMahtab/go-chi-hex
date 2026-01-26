@@ -22,7 +22,7 @@ type UpdateUserRequest struct {
 
 // UserResponse is what we send back
 type UserResponse struct {
-	ID         int       `json:"id"`
+	ID         string    `json:"id"`
 	UserName   string    `json:"user_name"`
 	Email      string    `json:"email"`
 	Phone      string    `json:"phone"`

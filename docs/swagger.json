@@ -192,6 +192,11 @@
         },
         "/user": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -245,6 +250,11 @@
         },
         "/user/trash": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieves all users where deleted_at is not null",
                 "produces": [
                     "application/json"
@@ -268,6 +278,11 @@
         },
         "/user/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -277,7 +292,7 @@
                 "summary": "Get user by ID",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -294,13 +309,18 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "tags": [
                     "user"
                 ],
                 "summary": "Soft delete user",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -314,6 +334,11 @@
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -326,7 +351,7 @@
                 "summary": "Update user partially",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -354,6 +379,11 @@
         },
         "/user/{id}/prune": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Hard deletes a user record from the database. This action cannot be undone.",
                 "tags": [
                     "user"
@@ -361,7 +391,7 @@
                 "summary": "Permanently delete a user",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -392,6 +422,11 @@
         },
         "/user/{id}/restore": {
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Restore a user that has been soft deleted",
                 "produces": [
                     "application/json"
@@ -402,7 +437,7 @@
                 "summary": "Restore a delete user",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -547,7 +582,7 @@
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "phone": {
                     "type": "string"

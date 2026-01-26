@@ -1,7 +1,6 @@
-version: '3.8'
-
 services:
   app:
+    container_name: app
     build:
       context: .
       target: dev
@@ -16,7 +15,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-        
     environment:
       - APP_PORT=${APP_PORT}
       - DB_HOST=${DB_HOST}
@@ -33,6 +31,7 @@ services:
       - go-hex-network
 
   postgres:
+    container_name: postgres
     image: postgres:17-alpine
     restart: always
     
@@ -56,9 +55,10 @@ services:
       
     networks:
       - go-hex-network
+
   redis:
+    container_name: hex-redis
     image: redis:7-alpine
-    container_name: hex_redis
     ports:
       - "6379:6379"
     volumes:
@@ -67,6 +67,7 @@ services:
 
     networks:
       - go-hex-network
+
   nats:
     image: nats:2.10-alpine
     container_name: nats-server
