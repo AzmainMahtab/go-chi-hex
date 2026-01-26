@@ -1,7 +1,6 @@
-version: '3.8'
-
 services:
   app:
+    container_name: app
     build:
       context: .
       target: dev
@@ -16,7 +15,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-        
     environment:
       - APP_PORT=${APP_PORT}
       - DB_HOST=${DB_HOST}
@@ -30,9 +28,10 @@ services:
       - REDIS_DB=${REDIS_DB}
       
     networks:
-      - docpad-network
+      - go-hex-network
 
   postgres:
+    container_name: postgres
     image: postgres:17-alpine
     restart: always
     
@@ -55,10 +54,11 @@ services:
       start_period: 10s
       
     networks:
-      - docpad-network
+      - go-hex-network
+
   redis:
+    container_name: hex-redis
     image: redis:7-alpine
-    container_name: hex_redis
     ports:
       - "6379:6379"
     volumes:
@@ -66,13 +66,31 @@ services:
     restart: always
 
     networks:
-      - docpad-network
+      - go-hex-network
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: nats-server
+    # -js: Enables JetStream
+    # -sd: Defines where the stream data is stored inside the container
+    # -m: Enables the monitoring port
+    command: ["-js", "-sd", "/data", "-m", "8222"]
+    ports:
+      - "4222:4222" # Standard NATS client port
+      - "8222:8222" # HTTP Monitoring/Management port
+    volumes:
+      - nats_storage:/data
+    restart: always
+
+    networks:
+      - go-hex-network
 
 networks:
-  docpad-network:
+  go-hex-network:
     driver: bridge 
 
 volumes:
   go-mod:
   postgres-data:
   redis_data:
+  nats_storage:

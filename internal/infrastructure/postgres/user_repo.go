@@ -5,6 +5,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/jmoiron/sqlx"
 )
@@ -23,9 +24,10 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 // Create() creates a user entity
 func (r *UserRepo) Create(ctx context.Context, u *domain.User) error {
 	query := `
-		INSERT INTO "user" (user_name, email,user_role, phone, password)
-	VALUES (:user_name, :email, :user_role, :phone, :password)
-		RETURNING id, user_status, created_at, updated_at`
+		INSERT INTO "user" (uuid,user_name, email,user_role, phone, password)
+		VALUES (:uuid, :user_name, :email, :user_role, :phone, :password)
+		RETURNING id, user_status, created_at, updated_at
+	`
 
 	// NamedQueryContext maps :user_name to u.UserName via tags
 	rows, err := r.db.NamedQueryContext(ctx, query, u)
@@ -42,9 +44,9 @@ func (r *UserRepo) Create(ctx context.Context, u *domain.User) error {
 }
 
 // ReadOne() reads an user entity with it's id
-func (r *UserRepo) ReadOne(ctx context.Context, id int) (*domain.User, error) {
+func (r *UserRepo) ReadOne(ctx context.Context, id string) (*domain.User, error) {
 	u := &domain.User{}
-	query := `SELECT * FROM "user" WHERE id = $1 AND deleted_at IS NULL`
+	query := `SELECT * FROM "user" WHERE uuid = $1 AND deleted_at IS NULL`
 
 	err := r.db.GetContext(ctx, u, query, id)
 	if err != nil {
@@ -70,7 +72,7 @@ func (r *UserRepo) ReadAll(ctx context.Context, filter domain.UserFilter) ([]*do
 	var users []*domain.User
 
 	//  Start with the base query
-	query := `SELECT id, user_name, email, phone, user_status, created_at, updated_at 
+	query := `SELECT id, uuid, user_name, email, phone, user_status, created_at, updated_at 
               FROM "user" WHERE 1=1`
 
 	//  Named arguments map for sqlx
@@ -138,7 +140,6 @@ func (r *UserRepo) ReadAll(ctx context.Context, filter domain.UserFilter) ([]*do
 
 // Update() updates an user entity
 func (r *UserRepo) Update(ctx context.Context, up domain.UserUpdate) error {
-	// --> APOINTED COMMENT: COALESCE ENSURES WE ONLY UPDATE PROVIDED FIELDS
 	query := `
         UPDATE "user" 
         SET 
@@ -147,10 +148,10 @@ func (r *UserRepo) Update(ctx context.Context, up domain.UserUpdate) error {
             phone = COALESCE(:phone, phone),
             user_status = COALESCE(:user_status, user_status),
             updated_at = NOW()
-        WHERE id = :id AND deleted_at IS NULL`
+        WHERE uuid = :uuid AND deleted_at IS NULL`
 
 	_, err := r.db.NamedExecContext(ctx, query, map[string]any{
-		"id":          up.ID,
+		"uuid":        up.UUID,
 		"user_name":   up.UserName,
 		"email":       up.Email,
 		"phone":       up.Phone,
@@ -161,16 +162,16 @@ func (r *UserRepo) Update(ctx context.Context, up domain.UserUpdate) error {
 }
 
 // SoftDelete() soft delets an user with status set to inactive and deleted_at date
-func (r *UserRepo) SoftDelete(ctx context.Context, id int) error {
-	query := `UPDATE "user" SET deleted_at = NOW(), user_status = 'inactive' WHERE id = $1`
+func (r *UserRepo) SoftDelete(ctx context.Context, id string) error {
+	query := `UPDATE "user" SET deleted_at = NOW(), user_status = 'inactive' WHERE uuid = $1`
 	_, err := r.db.ExecContext(ctx, query, id)
 
 	return MapError(err)
 }
 
 // Restore() restores a trashed user
-func (r *UserRepo) Restore(ctx context.Context, id int) error {
-	query := `UPDATE "user" SET deleted_at = NULL, updated_at = NOW(), user_status = 'active' WHERE id = $1`
+func (r *UserRepo) Restore(ctx context.Context, id string) error {
+	query := `UPDATE "user" SET deleted_at = NULL, updated_at = NOW(), user_status = 'active' WHERE uuid = $1`
 	_, err := r.db.ExecContext(ctx, query, id)
 
 	return MapError(err)
@@ -180,14 +181,14 @@ func (r *UserRepo) Restore(ctx context.Context, id int) error {
 func (r *UserRepo) Trash(ctx context.Context, filter domain.UserFilter) ([]*domain.User, error) {
 	var users []*domain.User
 
-	// 1. Base Query - Note the IS NOT NULL constraint to keep the trash "secret"
-	query := `SELECT id, user_name, email, phone, user_status, created_at, updated_at, deleted_at 
+	//  Base Query - Note the IS NOT NULL constraint to keep the trash "secret"
+	query := `SELECT uuid, user_name, email, phone, user_status, created_at, updated_at, deleted_at 
               FROM "user" 
               WHERE deleted_at IS NOT NULL`
 
 	args := make(map[string]any)
 
-	// 2. Build Dynamic Filters (Same logic as ReadAll, but restricted to Trash)
+	//  Build Dynamic Filters (Same logic as ReadAll, but restricted to Trash)
 	if filter.UserName != "" {
 		query += ` AND user_name ILIKE :user_name`
 		args["user_name"] = "%" + filter.UserName + "%"
@@ -198,17 +199,17 @@ func (r *UserRepo) Trash(ctx context.Context, filter domain.UserFilter) ([]*doma
 		args["email"] = filter.Email
 	}
 
-	// 3. Apply Pagination (Always essential for Admin views with lots of data)
+	//  Apply Pagination (Always essential for Admin views with lots of data)
 	if filter.Limit > 0 {
 		query += ` LIMIT :limit`
 		args["limit"] = filter.Limit
 	}
 	if filter.Offset > 0 {
-		query += ` OFFSET :offset`
+		query += ` OFFSET :offstring`
 		args["offset"] = filter.Offset
 	}
 
-	// 4. Execution
+	//  Execution
 	rows, err := r.db.NamedQueryContext(ctx, query, args)
 	if err != nil {
 		return nil, MapError(err)
@@ -220,14 +221,15 @@ func (r *UserRepo) Trash(ctx context.Context, filter domain.UserFilter) ([]*doma
 		if err := rows.StructScan(u); err != nil {
 			return nil, MapError(err)
 		}
+		// TEMP DEBUG LOG
 		users = append(users, u)
 	}
 
 	return users, nil
 }
 
-func (r *UserRepo) ReadOneDeleted(ctx context.Context, id int) (*domain.User, error) {
-	query := `SELECT * FROM "user" WHERE id = $1 AND deleted_at IS NOT NULL`
+func (r *UserRepo) ReadOneDeleted(ctx context.Context, id string) (*domain.User, error) {
+	query := `SELECT * FROM "user" WHERE uuid = $1 AND deleted_at IS NOT NULL`
 	u := &domain.User{}
 
 	err := r.db.GetContext(ctx, u, query, id)
@@ -240,8 +242,8 @@ func (r *UserRepo) ReadOneDeleted(ctx context.Context, id int) (*domain.User, er
 }
 
 // Prune() hard deletes an user
-func (r *UserRepo) Prune(ctx context.Context, id int) error {
-	query := `DELETE FROM "user" WHERE id = $1`
+func (r *UserRepo) Prune(ctx context.Context, id string) error {
+	query := `DELETE FROM "user" WHERE uuid = $1`
 	_, err := r.db.ExecContext(ctx, query, id)
 	return MapError(err)
 }

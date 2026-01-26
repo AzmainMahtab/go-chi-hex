@@ -85,7 +85,7 @@ func (j *JWTAdapter) VerifyToken(tokenStr string) (domain.UserClaims, error) {
 	//  Map the map[string]any back to your clean Domain struct
 	// IMPORTANT jwt.MapClaims stores numbers as float64
 	return domain.UserClaims{
-		UserID:   int(claims["sub"].(float64)),
+		UserID:   claims["sub"].(string),
 		Email:    claims["email"].(string),
 		Role:     claims["role"].(string),
 		IssuedAt: int64(claims["iat"].(float64)),
@@ -95,7 +95,7 @@ func (j *JWTAdapter) VerifyToken(tokenStr string) (domain.UserClaims, error) {
 
 func (j *JWTAdapter) signToken(u *domain.User, ttl time.Duration) (string, error) {
 	claims := jwt.MapClaims{
-		"sub":   u.ID,
+		"sub":   u.UUID,
 		"email": u.Email,
 		"role":  u.UserRole,
 		"iss":   j.Issuer,

@@ -7,7 +7,7 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   bin = "./tmp/main"
-  cmd = "swag init -g cmd/docpad/main.go && go build -o ./tmp/main ./cmd/docpad"
+  cmd = "swag init -g cmd/app/main.go && go build -o ./tmp/main ./cmd/app"
   # pre_cmd = [
   #   # generate swagger before server starts.
   #   "swag init -g cmd/docpad/main.go",

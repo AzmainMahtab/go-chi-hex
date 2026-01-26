@@ -8,7 +8,7 @@ type AuthLogin struct {
 }
 
 type UserClaims struct {
-	UserID   int
+	UserID   string
 	Email    string
 	Role     string
 	IssuedAt int64
