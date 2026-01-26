@@ -15,7 +15,7 @@ func userRouter(uh *handlers.UserHandler, tokenProvider ports.TokenProvider) htt
 	r := chi.NewRouter()
 
 	// General User Routes
-	r.Post("/", uh.Register)                                           // POST /user
+	r.Post("/", uh.CreateUser)                                         // POST /user
 	r.With(middleware.AuthMiddleware(tokenProvider)).Get("/", uh.List) // GET /user
 
 	// Special route for trashed users

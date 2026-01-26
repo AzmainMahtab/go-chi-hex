@@ -26,10 +26,11 @@ func NewUserHandler(svc ports.UserService) *UserHandler {
 // @Tags         user
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        user  body      dto.RegisterUserRequest  true  "User Data"
 // @Success      201   {object}  dto.UserResponse
 // @Router       /user [post]
-func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req dto.RegisterUserRequest
 	if err := jsonutil.ReadJSON(w, r, &req); err != nil {
 		jsonutil.BadRequestResponse(w, "Bad Request", nil)
@@ -64,6 +65,13 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Summary      List active users
 // @Tags         user
 // @Produce      json
+// @Param        user_name    query     string  false  "Filter by username"
+// @Param        email        query     string  false  "Filter by email"
+// @Param        phone        query     string  false  "Filter by phone"
+// @Param        user_status  query     string  false  "Filter by status (e.g. active, inactive)"
+// @Param        show_deleted query     bool    false  "Show including deleted users (true/false)"
+// @Param        limit        query     int     false  "Number of records to return (default 10)"
+// @Param        offset       query     int     false  "Number of records to skip (default 0)"
 // @Security     BearerAuth
 // @Success      200  {array}  dto.UserResponse
 // @Router       /user [get]
@@ -74,9 +82,9 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 		Email:       r.URL.Query().Get("email"),
 		Phone:       r.URL.Query().Get("phone"),
 		UserStatus:  r.URL.Query().Get("user_status"),
-		ShowDeleted: false,                         // Explicitly false for the active list
-		Limit:       ParseQueryInt(r, "limit", 10), // Default to 10
-		Offset:      ParseQueryInt(r, "offset", 0), // Default to 0
+		ShowDeleted: ParseQueryBool(r, "show_deleted", false), // Explicitly false for the active list
+		Limit:       ParseQueryInt(r, "limit", 10),            // Default to 10
+		Offset:      ParseQueryInt(r, "offset", 0),            // Default to 0
 	}
 
 	// Call Service

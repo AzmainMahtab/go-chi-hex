@@ -94,7 +94,7 @@ func main() {
 
 	// SERVICE SETUP
 	userService := users.NewUserService(userRepo, bcryptHasher)
-	authService := auth.NewAuthService(userRepo, jwtAdapter, redisRepo)
+	authService := auth.NewAuthService(userRepo, jwtAdapter, redisRepo, bcryptHasher)
 	// HANDLER AND ROUTER SETUP
 	healthHandler := handlers.NewHealthHandleer()
 	userHandler := handlers.NewUserHandler(userService)

@@ -31,14 +31,18 @@ definitions:
   dto.RegisterUserRequest:
     properties:
       email:
+        example: hehe@hehemail.com
         type: string
       password:
+        example: Very$tr0ngP@$$w0Rd
         minLength: 8
         type: string
       phone:
         description: e164 ensures international phone format
+        example: "+8801700000000"
         type: string
       user_name:
+        example: hehe
         maxLength: 32
         minLength: 3
         type: string
@@ -59,16 +63,20 @@ definitions:
   dto.UpdateUserRequest:
     properties:
       email:
+        example: hehe@hehemail.com
         type: string
       phone:
+        example: "+8801700000000"
         type: string
       status:
         enum:
         - active
         - inactive
         - suspended
+        example: active
         type: string
       user_name:
+        example: hehe
         maxLength: 32
         minLength: 3
         type: string
@@ -199,6 +207,27 @@ paths:
       summary: Logout User
       tags:
       - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.UserResponse'
+      summary: Register a new user
+      tags:
+      - auth
   /auth/rotate:
     post:
       consumes:
@@ -250,6 +279,35 @@ paths:
       - System
   /user:
     get:
+      parameters:
+      - description: Filter by username
+        in: query
+        name: user_name
+        type: string
+      - description: Filter by email
+        in: query
+        name: email
+        type: string
+      - description: Filter by phone
+        in: query
+        name: phone
+        type: string
+      - description: Filter by status (e.g. active, inactive)
+        in: query
+        name: user_status
+        type: string
+      - description: Show including deleted users (true/false)
+        in: query
+        name: show_deleted
+        type: boolean
+      - description: Number of records to return (default 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Number of records to skip (default 0)
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
@@ -281,6 +339,8 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/dto.UserResponse'
+      security:
+      - BearerAuth: []
       summary: Register a new user
       tags:
       - user
