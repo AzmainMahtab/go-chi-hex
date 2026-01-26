@@ -37,3 +37,16 @@ func ParseQueryInt(r *http.Request, key string, defaultValue int) int {
 
 	return val
 }
+
+func ParseQueryBool(r *http.Request, key string, defaultVal bool) bool {
+	val := r.URL.Query().Get(key)
+	if val == "" {
+		return defaultVal
+	}
+	// ParseBool handles "1", "t", "T", "true", "TRUE", "0", "f", "F", "false", "FALSE"
+	b, err := strconv.ParseBool(val)
+	if err != nil {
+		return defaultVal
+	}
+	return b
+}

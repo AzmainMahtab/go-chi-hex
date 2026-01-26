@@ -279,6 +279,35 @@ paths:
       - System
   /user:
     get:
+      parameters:
+      - description: Filter by username
+        in: query
+        name: user_name
+        type: string
+      - description: Filter by email
+        in: query
+        name: email
+        type: string
+      - description: Filter by phone
+        in: query
+        name: phone
+        type: string
+      - description: Filter by status (e.g. active, inactive)
+        in: query
+        name: user_status
+        type: string
+      - description: Show including deleted users (true/false)
+        in: query
+        name: show_deleted
+        type: boolean
+      - description: Number of records to return (default 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Number of records to skip (default 0)
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
@@ -310,6 +339,8 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/dto.UserResponse'
+      security:
+      - BearerAuth: []
       summary: Register a new user
       tags:
       - user

@@ -240,6 +240,50 @@ const docTemplate = `{
                     "user"
                 ],
                 "summary": "List active users",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by username",
+                        "name": "user_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by email",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by phone",
+                        "name": "phone",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status (e.g. active, inactive)",
+                        "name": "user_status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Show including deleted users (true/false)",
+                        "name": "show_deleted",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of records to return (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of records to skip (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -253,6 +297,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
