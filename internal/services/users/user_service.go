@@ -5,6 +5,7 @@ package users
 import (
 	"context"
 	"log"
+	"log/slog"
 
 	"github.com/AzmainMahtab/go-chi-hex/internal/domain"
 	"github.com/AzmainMahtab/go-chi-hex/internal/ports"
@@ -123,7 +124,7 @@ func (s *service) GetUserByEmail(ctx context.Context, email string) (*domain.Use
 
 func (s *service) UpdateUser(ctx context.Context, updates domain.UserUpdate) (*domain.User, error) {
 	// Check if user exists first (Optional, but good for business logic)
-	_, err := s.repo.ReadOne(ctx, updates.ID)
+	_, err := s.repo.ReadOne(ctx, updates.UUID)
 	if err != nil {
 		return nil, &domain.AppError{
 			Code:    domain.CodeNotFound,
@@ -134,6 +135,7 @@ func (s *service) UpdateUser(ctx context.Context, updates domain.UserUpdate) (*d
 
 	// Perform the partial update
 	if err := s.repo.Update(ctx, updates); err != nil {
+		slog.Error("Update err:", "err", err)
 		return nil, &domain.AppError{
 			Code:    domain.CodeInternal,
 			Message: "Action could not be performed",
@@ -142,7 +144,7 @@ func (s *service) UpdateUser(ctx context.Context, updates domain.UserUpdate) (*d
 	}
 
 	// Return the fresh user data
-	return s.repo.ReadOne(ctx, updates.ID)
+	return s.repo.ReadOne(ctx, updates.UUID)
 }
 
 func (s *service) RemoveUser(ctx context.Context, id string) error {

@@ -145,7 +145,7 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	// Map DTO to Domain.UserUpdate (Strictly Typed)
 	updateParams := domain.UserUpdate{
-		ID:       id,
+		UUID:     id,
 		UserName: req.UserName,
 		Email:    req.Email,
 		Phone:    req.Phone,

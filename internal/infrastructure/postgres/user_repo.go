@@ -148,10 +148,10 @@ func (r *UserRepo) Update(ctx context.Context, up domain.UserUpdate) error {
             phone = COALESCE(:phone, phone),
             user_status = COALESCE(:user_status, user_status),
             updated_at = NOW()
-        WHERE id = :uuid AND deleted_at IS NULL`
+        WHERE uuid = :uuid AND deleted_at IS NULL`
 
 	_, err := r.db.NamedExecContext(ctx, query, map[string]any{
-		"id":          up.ID,
+		"uuid":        up.UUID,
 		"user_name":   up.UserName,
 		"email":       up.Email,
 		"phone":       up.Phone,

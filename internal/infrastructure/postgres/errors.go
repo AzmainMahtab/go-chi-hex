@@ -66,6 +66,7 @@ func MapError(err error) error {
 		}
 	}
 
+	slog.Error("DATA LAYER ERR", ":", err)
 	//  Default Fallback
 	return &domain.AppError{
 		Code:    domain.CodeInternal,
