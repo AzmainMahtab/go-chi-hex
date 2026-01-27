@@ -37,6 +37,7 @@ goose-down:
 # goose-create: Create a new migration file (Usage: make goose-create name=add_users_table)
 goose-create:
 	docker compose exec app goose create $(name) sql
+	sudo chown -R $(shell id -u):$(shell id -g) ./migrations
 
 # goose-status: Check migration status
 goose-status:
