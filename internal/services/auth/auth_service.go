@@ -18,14 +18,16 @@ type authService struct {
 	tokenProvider ports.TokenProvider
 	cache         ports.CacheRepo
 	hasher        ports.PasswordHasher
+	auditPub      ports.AuditPublisher
 }
 
-func NewAuthService(ur ports.UserRepository, tp ports.TokenProvider, c ports.CacheRepo, h ports.PasswordHasher) ports.AuthService {
+func NewAuthService(ur ports.UserRepository, tp ports.TokenProvider, c ports.CacheRepo, h ports.PasswordHasher, ap ports.AuditPublisher) ports.AuthService {
 	return &authService{
 		repo:          ur,
 		tokenProvider: tp,
 		cache:         c,
 		hasher:        h,
+		auditPub:      ap,
 	}
 }
 
@@ -91,13 +93,36 @@ func (a *authService) Login(ctx context.Context, login domain.AuthLogin) (domain
 		}
 	}
 
+	eventUUID, _ := uuid.NewV7()
+
 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(login.Password)); err != nil {
+
+		a.auditPub.Publish(ctx, domain.Audit{
+			UUID:      eventUUID.String(),
+			EventType: "USER_LOGIN",
+			ActorID:   u.UUID,
+			Payload: map[string]any{
+				"email":  u.Email,
+				"status": "Failed",
+			},
+		})
+
 		return domain.Tokenpair{}, &domain.AppError{
 			Code:    domain.CodeValidation,
 			Message: "One or more wrong credential",
 			Err:     err,
 		}
 	}
+
+	a.auditPub.Publish(ctx, domain.Audit{
+		UUID:      eventUUID.String(),
+		EventType: "USER_LOGIN",
+		ActorID:   u.UUID,
+		Payload: map[string]any{
+			"email":  u.Email,
+			"status": "Success",
+		},
+	})
 
 	return a.tokenProvider.GenerateTokenPair(u)
 }

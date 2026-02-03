@@ -39,11 +39,16 @@ type JWTConfig struct {
 	Issuer         string
 }
 
+type NATSConfig struct {
+	URL string
+}
+
 type Config struct {
 	Server ServerConfig
 	DB     DatabaseConfig
 	JWT    JWTConfig
 	Redis  RedisConfig
+	NATS   NATSConfig
 }
 
 func getEnv(key, defaultValue string) string {
@@ -81,6 +86,10 @@ func LoadConfig() (*Config, error) {
 			PrivateKeypath: getEnv("AUTH_PRIVATE_KEY_PATH", "./certs/private.pem"),
 			PublicKeyPath:  getEnv("AUTH_PUBLIC_KEY_PATH", "./certs/public.pem"),
 			Issuer:         getEnv("AUTH_ISSUER", "appName-api"),
+		},
+
+		NATS: NATSConfig{
+			URL: getEnv("NATS_URL", "nats://localhost:4222"),
 		},
 	}
 	// Validate required configuration (Password is critical)

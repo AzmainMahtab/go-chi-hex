@@ -16,6 +16,7 @@ import (
 	// ... imports for context, log, net/http, os, signal, syscall, time ...
 	"context"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -25,6 +26,7 @@ import (
 	"github.com/AzmainMahtab/go-chi-hex/api/http/handlers"
 	routes "github.com/AzmainMahtab/go-chi-hex/api/http/router"
 	"github.com/AzmainMahtab/go-chi-hex/internal/config"
+	"github.com/AzmainMahtab/go-chi-hex/internal/infrastructure/nats"
 	"github.com/AzmainMahtab/go-chi-hex/internal/infrastructure/postgres"
 	"github.com/AzmainMahtab/go-chi-hex/internal/infrastructure/redis"
 	"github.com/AzmainMahtab/go-chi-hex/internal/secure"
@@ -71,6 +73,17 @@ func main() {
 
 	defer redisClient.Close()
 
+	// NATS SETUP
+
+	nc, err := nats.NewNATS(cfg.NATS.URL)
+	if err != nil {
+		slog.Error("NATS connection failed", "error", err)
+	}
+
+	if err := nats.InitEventStream(nc, "AUDIT_STREAM", []string{"audit.event"}); err != nil {
+		slog.Error("NATS stream initialization failed", "error", err)
+	}
+
 	//JWT SETUP
 	privKey, err := secure.LoadPrivateKey(cfg.JWT.PrivateKeypath)
 	pubKey, err := secure.LoadPublicKey(cfg.JWT.PublicKeyPath)
@@ -91,10 +104,17 @@ func main() {
 	// REPOSITORY SETUP
 	userRepo := postgres.NewUserRepo(db)
 	redisRepo := redis.NewRedisAdapter(redisClient)
+	auditRepo := postgres.NewAuditRepo(db)
+
+	//Audit stream setup
+	auditWorker := nats.NewAuditWorker(nc, auditRepo)
+	auditPublisher := nats.NewNatsEventPublisher(nc)
+
+	auditWorker.Start(context.Background())
 
 	// SERVICE SETUP
 	userService := users.NewUserService(userRepo, bcryptHasher)
-	authService := auth.NewAuthService(userRepo, jwtAdapter, redisRepo, bcryptHasher)
+	authService := auth.NewAuthService(userRepo, jwtAdapter, redisRepo, bcryptHasher, auditPublisher)
 	// HANDLER AND ROUTER SETUP
 	healthHandler := handlers.NewHealthHandleer()
 	userHandler := handlers.NewUserHandler(userService)

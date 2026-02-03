@@ -1,0 +1,11 @@
+FROM postgres:17
+
+LABEL maintainer="DocPad Team"
+
+# Install PostgreSQL extensions from Debian repositories
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        postgresql-17-cron \
+        postgresql-17-partman \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*

@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS "user"(
   password TEXT NOT NULL,
   user_status user_status_choise NOT NULL DEFAULT 'active',
   user_role user_role_choise NOT NULL DEFAULT 'user',
+  
+  otp VARCHAR (6) NULL,
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
