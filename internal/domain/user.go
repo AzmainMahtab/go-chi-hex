@@ -11,6 +11,7 @@ type User struct {
 	Email      string     `db:"email"`
 	Phone      string     `db:"phone"`
 	Password   string     `db:"password"`
+	OTP        *string    `db:"otp"`
 	UserStatus string     `db:"user_status"`
 	UserRole   string     `db:"user_role"`
 	CreatedAt  time.Time  `db:"created_at"`

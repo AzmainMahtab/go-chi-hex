@@ -8,7 +8,7 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-func InitJetStream(url string) (nats.JetStreamContext, error) {
+func NewNATS(url string) (nats.JetStreamContext, error) {
 	nc, err := nats.Connect(url)
 	if err != nil {
 		slog.Info("NATS connection fialed", "url", url)

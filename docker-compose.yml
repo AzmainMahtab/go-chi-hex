@@ -32,7 +32,7 @@ services:
       - go-hex-network
 
   postgres:
-    container_name: postgres
+    container_name: postgres-hex
     build:
       context: .
       dockerfile: Dockerfile.db
@@ -79,7 +79,7 @@ services:
 
   nats:
     image: nats:2.10-alpine
-    container_name: nats-server
+    container_name: nats-server-hex
     # -js: Enables JetStream
     # -sd: Defines where the stream data is stored inside the container
     # -m: Enables the monitoring port

@@ -21,7 +21,7 @@ func NewAuditRepo(db *sql.DB) *AuditRepo {
 }
 
 func (r *AuditRepo) Create(ctx context.Context, auditLog domain.Audit) error {
-	query := `INSERT INTO audit_logs 
+	query := `INSERT INTO audit_log 
 						(uuid, event_type, actor_id, payload) VALUES 
 						(:uuid, :event_type, :actor_id, :payload)`
 
