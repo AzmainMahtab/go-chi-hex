@@ -25,3 +25,15 @@ func InitJetStream(url string) (nats.JetStreamContext, error) {
 
 	return js, err
 }
+
+func InitEventStream(js nats.JetStreamContext, streamName string, subjeccts []string) error {
+
+	_, err := js.AddStream(&nats.StreamConfig{
+		Name:      streamName,
+		Subjects:  subjeccts,
+		Retention: nats.WorkQueuePolicy,
+		Storage:   nats.FileStorage,
+	})
+
+	return err
+}
