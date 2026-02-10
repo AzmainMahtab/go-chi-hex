@@ -176,6 +176,7 @@ func (a *authService) Logout(ctx context.Context, refreshToken string, accessCla
 	//  Blacklist the token string
 	return a.cache.Set(ctx, "blacklist:refresh:"+refreshToken, "revoked", ttl)
 }
+
 func (a *authService) Rotate(ctx context.Context, refreshToken string) (domain.Tokenpair, error) {
 	// Checking if token already exist
 	blackList, err := a.cache.Exists(ctx, "blacklist:refresh:"+refreshToken)
